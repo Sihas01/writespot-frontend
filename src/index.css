@@ -1,1 +1,40 @@
 @import "tailwindcss";
+
+@font-face {
+  font-family: Inknut;
+  src: url('../src/assets/fonts/InknutAntiqua-Regular.ttf');
+  
+}
+
+@font-face {
+  font-family: Nunito;
+  src: url('../src/assets/fonts/Nunito-VariableFont_wght.ttf');
+  font-weight: 100 900; /* supports all weights */
+  font-style: normal;
+}
+
+@font-face {
+  font-family: Poppins-SemiBold;
+  src: url('../src/assets/fonts/Poppins-SemiBold.ttf');
+}
+
+@font-face {
+  font-family: Poppins-Regular;
+  src: url('../src/assets/fonts/Poppins-Regular.ttf');
+}
+
+@font-face {
+  font-family: Poppins-Medium;
+  src: url('../src/assets/fonts/Poppins-Medium.ttf');
+}
+
+@theme{
+    --font-inknut: Inknut,"sans-serif";
+    --font-nunito: Nunito,"sans-serif";
+    --font-poppins-sm: Poppins-SemiBold,"sans-serif";
+    --font-poppins-rg: Poppins-Regular,"sans-serif";
+    --font-poppins-md: Poppins-Medium,"sans-serif";
+
+
+
+}
