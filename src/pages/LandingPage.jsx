@@ -1,3 +1,4 @@
+import FAQSection from "../components/FAQSection";
 import HeroSection from "../components/HeroSection";
 import NavBar from "../components/NavBar";
 import ReaderFeatures from "../components/ReaderFeatures";
@@ -11,6 +12,7 @@ const LandingPage = () => {
         <HeroSection/>
         <ReaderFeatures/>
         <RegistrationSection/>
+        <FAQSection/>
         {/* hello there */}
         </>
     );
