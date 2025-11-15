@@ -1,5 +1,6 @@
 import HeroSection from "../components/HeroSection";
 import NavBar from "../components/NavBar";
+import ReaderFeatures from "../components/ReaderFeatures";
 import SectionOne from "../components/SectionOne";
 
 const LandingPage = () => {
@@ -7,7 +8,7 @@ const LandingPage = () => {
         <>
         <NavBar/>
         <HeroSection/>
-        <SectionOne/>
+        <ReaderFeatures/>
         {/* hello there */}
         </>
     );

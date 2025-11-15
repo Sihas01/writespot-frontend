@@ -6,7 +6,7 @@ import underlineShape from '../assets/images/underlineShape.svg';
 
 const HeroSection = () => {
     return (
-        <div className="pl-3 pr-3 md:pl-8 md:pr-8 lg:pl-25 min-h-screen block z-10 relative">
+        <div className="pl-3 pr-3 md:pl-8 md:pr-8 lg:pl-25 min-h-screen block z-10 relative overflow-hidden">
             <div className="pt-36 lg:pt-[15vh] grid lg:grid-cols-2 items-center lg:h-screen">
                 <div className="flex flex-col lg:gap-16">
                     <div >
