@@ -15,7 +15,7 @@ const NavBar = () => {
     };
     return (
         <>
-            <nav className="w-full fixed pr-4 pl-4 md:pr-25 md:pl-25 flex items-center justify-between bg-white z-20">
+            <nav className="w-full fixed pr-4 pl-4 md:pl-8 md:p4-8 lg:pr-25 lg:pl-25 flex items-center justify-between bg-white z-20">
                 <div className="flex gap-12 items-center p-4 pl-0 md:p-8 md:pl-0">
                     {/* Logo */}
                     <h1 className="font-inknut text-2xl md:text-2xl text-[#074B03]">WriteSpot</h1>
