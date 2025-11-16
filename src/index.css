@@ -33,6 +33,11 @@
   src: url('../src/assets/fonts/Poppins-Medium.ttf');
 }
 
+@font-face {
+  font-family: Qwigley;
+  src: url('../src/assets/fonts/Qwigley-Regular.ttf');
+}
+
 @theme{
     --font-inknut: Inknut,"sans-serif";
     --font-nunito: Nunito,"sans-serif";
@@ -41,7 +46,14 @@
     --font-poppins-md: Poppins-Medium,"sans-serif";
     --font-poppins-md: Poppins-Medium,"sans-serif";
     --font-poppins-lt: Poppins-Light,"sans-serif";
-
-
+    --font-qwigley: Qwigley,"sans-serif";
 
 }
+
+/* Background Images for author dashboard in landing page */
+.section1_bg_full{
+  background-image: url(assets/images/section1_background_full.png);
+  background-size: 100% 65%;
+  background-repeat: no-repeat;
+}
+

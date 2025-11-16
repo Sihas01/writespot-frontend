@@ -62,7 +62,7 @@ const FAQSection = () => {
                 onClick={() => toggleFAQ(index)}
                 className="w-full flex justify-between items-center px-6 py-4"
               >
-                <span className="font-poppins-md  ">{faq.question}</span>
+                <span className="font-poppins-md  text-left">{faq.question}</span>
                 <span className="text-2xl">{isOpen ? <MdKeyboardArrowUp /> : <MdKeyboardArrowDown />}</span>
               </button>
 

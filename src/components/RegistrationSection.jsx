@@ -12,7 +12,7 @@ const RegistrationSection = () => {
       }}
     >
       <div className="lg:w-[55%]">
-        <h1 className="text-3xl md:text-4xl font-poppins-sm text-white text-center lg:text-left">
+        <h1 className="text-2xl md:text-4xl font-poppins-sm text-white text-center lg:text-left">
           Drop us a line or two, we are open for creative minds and <span className='text-[#FACC15]'>collaborations!</span>
         </h1>
         <div className="flex items-center justify-center lg:justify-start">
@@ -26,7 +26,7 @@ const RegistrationSection = () => {
       </div>
       <div className="border-t-2 lg:border-l-2 lg:border-t-0 border-white mt-10 lg:mt-0">
         <div className='pt-10 lg:pt-0 lg:ml-36  lg:w-[55%]'>
-            <h1 className="text-3xl md:text-4xl font-poppins-sm text-white text-center lg:text-left">
+            <h1 className="text-2xl md:text-4xl font-poppins-sm text-white text-center lg:text-left">
           Drop us a line or two, we are open for creative minds and <span className='text-[#FACC15]'>collaborations!</span>
         </h1>
         <div className="flex items-center justify-center lg:justify-start">
