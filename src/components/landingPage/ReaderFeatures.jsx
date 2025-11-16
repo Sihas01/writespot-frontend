@@ -1,4 +1,4 @@
-import readerStore from '../assets/images/readerStore.png';
+import readerStore from '../../assets/images/readerStore.png';
 
 const ReaderFeatures = () => {
     return (

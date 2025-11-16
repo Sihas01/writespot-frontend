@@ -1,5 +1,5 @@
-import section1_img1 from '../assets/images/section1_img1.png';
-import underlineShape from '../assets/images/underline.svg';
+import section1_img1 from '../../assets/images/section1_img1.png';
+import underlineShape from '../../assets/images/underline.svg';
 
 const AuthorFeatures = () => {
     return (

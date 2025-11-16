@@ -1,4 +1,4 @@
-import backgroundImage from '../assets/images/backgroundImage.png';
+import backgroundImage from '../../assets/images/backgroundImage.png';
 import { FiUploadCloud } from "react-icons/fi";
 import { RiBookLine } from "react-icons/ri";
 

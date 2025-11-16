@@ -1,7 +1,7 @@
 import { FaArrowRightLong } from "react-icons/fa6";
-import guawashape from '../assets/images/Vector.svg';
-import girl from '../assets/images/girl.png';
-import underlineShape from '../assets/images/underlineShape.svg';
+import guawashape from '../../assets/images/Vector.svg';
+import girl from '../../assets/images/girl.png';
+import underlineShape from '../../assets/images/underlineShape.svg';
 
 
 const HeroSection = () => {

@@ -1,11 +1,11 @@
-import AuthorFeatures from "../components/AuthorFeatures";
-import DashboardHighlights from "../components/DashboardHighlights";
-import FAQSection from "../components/FAQSection";
-import Footer from "../components/Footer";
-import HeroSection from "../components/HeroSection";
-import NavBar from "../components/NavBar";
-import ReaderFeatures from "../components/ReaderFeatures";
-import RegistrationSection from "../components/RegistrationSection";
+import AuthorFeatures from "../components/landingPage/AuthorFeatures";
+import DashboardHighlights from "../components/landingPage/DashboardHighlights";
+import FAQSection from "../components/landingPage/FAQSection";
+import Footer from "../components/landingPage/Footer";
+import HeroSection from "../components/landingPage/HeroSection";
+import NavBar from "../components/landingPage/NavBar";
+import ReaderFeatures from "../components/landingPage/ReaderFeatures";
+import RegistrationSection from "../components/landingPage/RegistrationSection";
 
 const LandingPage = () => {
     return(
