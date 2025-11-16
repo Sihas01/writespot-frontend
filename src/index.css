@@ -1,1 +1,59 @@
 @import "tailwindcss";
+
+@font-face {
+  font-family: Inknut;
+  src: url('../src/assets/fonts/InknutAntiqua-Regular.ttf');
+  
+}
+
+@font-face {
+  font-family: Nunito;
+  src: url('../src/assets/fonts/Nunito-VariableFont_wght.ttf');
+  font-weight: 100 900; /* supports all weights */
+  font-style: normal;
+}
+
+@font-face {
+  font-family: Poppins-SemiBold;
+  src: url('../src/assets/fonts/Poppins-SemiBold.ttf');
+}
+
+@font-face {
+  font-family: Poppins-Regular;
+  src: url('../src/assets/fonts/Poppins-Regular.ttf');
+}
+
+@font-face {
+  font-family: Poppins-Light;
+  src: url('../src/assets/fonts/Poppins-Light.ttf');
+}
+
+@font-face {
+  font-family: Poppins-Medium;
+  src: url('../src/assets/fonts/Poppins-Medium.ttf');
+}
+
+@font-face {
+  font-family: Qwigley;
+  src: url('../src/assets/fonts/Qwigley-Regular.ttf');
+}
+
+@theme{
+    --font-inknut: Inknut,"sans-serif";
+    --font-nunito: Nunito,"sans-serif";
+    --font-poppins-sm: Poppins-SemiBold,"sans-serif";
+    --font-poppins-rg: Poppins-Regular,"sans-serif";
+    --font-poppins-md: Poppins-Medium,"sans-serif";
+    --font-poppins-md: Poppins-Medium,"sans-serif";
+    --font-poppins-lt: Poppins-Light,"sans-serif";
+    --font-qwigley: Qwigley,"sans-serif";
+
+}
+
+/* Background Images for author dashboard in landing page */
+.section1_bg_full{
+  background-image: url(assets/images/section1_background_full.png);
+  background-size: 100% 65%;
+  background-repeat: no-repeat;
+}
+
