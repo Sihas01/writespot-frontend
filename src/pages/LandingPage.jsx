@@ -1,4 +1,5 @@
 import AuthorFeatures from "../components/AuthorFeatures";
+import DashboardHighlights from "../components/DashboardHighlights";
 import FAQSection from "../components/FAQSection";
 import Footer from "../components/Footer";
 import HeroSection from "../components/HeroSection";
@@ -12,6 +13,7 @@ const LandingPage = () => {
         <NavBar/>
         <HeroSection/>
         <AuthorFeatures/>
+        <DashboardHighlights/>
         <ReaderFeatures/>
         <RegistrationSection/>
         <FAQSection/>
