@@ -1,6 +1,5 @@
 import InputField from "./InputField";
 import NavigationButtons from "./NavigationButtons";
-import SelectField from "./SelectField";
 
 function PricingStep({ formData, onChange, onBack, onSubmit, isLoading }) {
   const handleSubmit = (e) => {
@@ -8,25 +7,7 @@ function PricingStep({ formData, onChange, onBack, onSubmit, isLoading }) {
     onSubmit();
   };
 
-  const currencyOptions = [
-    { value: 'usd', label: 'USD ($)' },
-    { value: 'eur', label: 'EUR (€)' },
-    { value: 'gbp', label: 'GBP (£)' },
-    { value: 'jpy', label: 'JPY (¥)' }
-  ];
 
-  const royaltyOptions = [
-    { value: '35', label: '35% Royalty' },
-    { value: '70', label: '70% Royalty' }
-  ];
-
-  const territoryOptions = [
-    { value: 'worldwide', label: 'Worldwide' },
-    { value: 'us', label: 'United States' },
-    { value: 'eu', label: 'European Union' },
-    { value: 'uk', label: 'United Kingdom' },
-    { value: 'asia', label: 'Asia Pacific' }
-  ];
 
   return (
     <form onSubmit={handleSubmit}>
@@ -44,37 +25,10 @@ function PricingStep({ formData, onChange, onBack, onSubmit, isLoading }) {
             required
           />
 
-          <SelectField
-            label="Currency"
-            name="currency"
-            value={formData.currency}
-            onChange={onChange}
-            options={currencyOptions}
-            placeholder="Select Currency"
-            required
-          />
+          
         </div>
 
-        <SelectField
-          label="Royalty Model"
-          name="royaltyModel"
-          value={formData.royaltyModel}
-          onChange={onChange}
-          options={royaltyOptions}
-          placeholder="Select Royalty Model"
-          required
-        />
-
-        <SelectField
-          label="Distribution Territory"
-          name="territory"
-          value={formData.territory}
-          onChange={onChange}
-          options={territoryOptions}
-          placeholder="Select Territory"
-          required
-        />
-
+       
         <InputField
           label="Discount Percentage (Optional)"
           name="discount"

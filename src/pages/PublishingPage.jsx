@@ -33,9 +33,6 @@ const PublishingPage = () => {
 
     // Pricing
     price: '',
-    currency: '',
-    royaltyModel: '',
-    territory: '',
     discount: ''
   });
 
@@ -137,7 +134,7 @@ const PublishingPage = () => {
           authorLastName: '', isbn: '',
           description: '', genre: '', keywords: '', coverImage: null,
           manuscript: null, fileFormat: '', 
-          price: '', currency: '', royaltyModel: '', territory: '', discount: ''
+          price: '', discount: ''
         });
         setCurrentStep(0);
       }, 2000);
