@@ -1,3 +1,4 @@
+import { RiLoader2Fill } from "react-icons/ri";
 function NavigationButtons({ onBack, onNext, showBack, nextLabel = "Next", isLoading = false }) {
   return (
     <div className={`flex ${showBack ? 'justify-between' : 'justify-end'} mt-8 gap-4`}>
@@ -16,7 +17,7 @@ function NavigationButtons({ onBack, onNext, showBack, nextLabel = "Next", isLoa
         disabled={isLoading}
         className="px-6 py-2 bg-yellow-400 text-gray-800 rounded hover:bg-yellow-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
       >
-        {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+        {isLoading && <RiLoader2Fill className="w-4 h-4 animate-spin" />}
         {nextLabel}
       </button>
     </div>
