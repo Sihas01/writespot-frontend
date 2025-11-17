@@ -11,6 +11,7 @@ const PublishingPage = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState(null);
+ 
 
   const [formData, setFormData] = useState({
     // Book Details
@@ -28,8 +29,7 @@ const PublishingPage = () => {
     // Content
     manuscript: null,
     fileFormat: '',
-    tableOfContents: '',
-    sampleChapter: null,
+  
 
     // Pricing
     price: '',
@@ -67,6 +67,27 @@ const PublishingPage = () => {
   };
 
   const handleNext = () => {
+
+   if (currentStep === 1) {
+    if (!formData.coverImage) {
+      setAlert({
+        type: 'error',
+        message: 'Please upload a cover image.'
+      });
+      return;
+    }
+
+    if (!formData.manuscript) {
+      setAlert({
+        type: 'error',
+        message: 'Please upload your manuscript file.'
+      });
+      return;
+    }
+  }
+
+  setAlert(null);
+
     setCurrentStep(Math.min(currentStep + 1, steps.length - 1));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -115,7 +136,7 @@ const PublishingPage = () => {
           language: '', title: '', subtitle: '', authorFirstName: '',
           authorLastName: '', isbn: '',
           description: '', genre: '', keywords: '', coverImage: null,
-          manuscript: null, fileFormat: '', tableOfContents: '', sampleChapter: null,
+          manuscript: null, fileFormat: '', 
           price: '', currency: '', royaltyModel: '', territory: '', discount: ''
         });
         setCurrentStep(0);
