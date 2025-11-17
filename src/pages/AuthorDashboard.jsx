@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import HomePage from './AuthorHomePage';
 import Header from '../components/AuthorDashboard/Header';
 import Navigation from '../components/AuthorDashboard/Navigation';
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 
 
 const AuthorDashboard = () => {
-  const [activeTab, setActiveTab] = useState('home');
    const [showHeader, setShowHeader] = useState(true);
   const [isNavSticky, setIsNavSticky] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -42,30 +42,26 @@ const AuthorDashboard = () => {
     };
   }, [lastScrollY]);
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'home':
-        return <HomePage />;
-    //   case 'publications':
-    //     return <MyPublicationsPage />;
-    //   case 'revenue':
-    //     return <RevenuePage />;
-      default:
-        return <HomePage />;
-    }
+   const navigate = useNavigate();
+const location = useLocation();
+const currentTab = location.pathname.split("/").pop() || "home";
+
+
+  const handleTabChange = (tab) => {
+    navigate(`/dashboard/${tab}`);
   };
 
   return (
    <div className="min-h-screen bg-gray-50">
       <Header username="John" isVisible={showHeader} />
       <Navigation 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab}
+        activeTab={currentTab} 
+        onTabChange={handleTabChange}
         isSticky={isNavSticky}
       />
       
       <main className={`px-4 lg:px-32 mx-auto py-6 ${isNavSticky ? 'mt-16' : ''}`}>
-        {renderContent()}
+        <Outlet /> 
       </main>
     </div>
   );
