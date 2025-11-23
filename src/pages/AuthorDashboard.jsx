@@ -11,6 +11,8 @@ const AuthorDashboard = () => {
   const [isNavSticky, setIsNavSticky] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [hasBooks, setHasBooks] = useState(null);
+  const user = JSON.parse(localStorage.getItem('user'));
+  const userName = user?.name;
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -72,7 +74,7 @@ const currentTab = location.pathname.split("/").pop() || "home";
 
   return (
    <div className="min-h-screen bg-gray-50">
-      <Header username="John" isVisible={showHeader} />
+      <Header username={userName.split(" ")[0]} isVisible={showHeader} />
       <Navigation 
         activeTab={currentTab} 
         onTabChange={handleTabChange}

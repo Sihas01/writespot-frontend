@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF } from "react-icons/fa6";
@@ -9,9 +9,21 @@ import axios from "axios";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState(""); 
+  const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (token && user?.role) {
+      if (user.role.toLowerCase() === "author") {
+        navigate("/dashboard");
+      } else {
+        navigate("/reader/dashboard");
+      }
+    }
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -22,19 +34,18 @@ export default function LoginPage() {
       const res = await axios.post("http://localhost:3000/api/auth/login", {
         email,
         password,
-        role: role, // ← SEND "Reader" or "Author" EXACTLY (no toLowerCase!)
+        role,
       });
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
       alert("Login Successful! Welcome back to WriteSpot");
-      
-      // Redirect based on role
+
       if (role === "Author") {
-        navigate("/dashboard"); 
+        navigate("/dashboard");
       } else {
-        navigate("/reader/dashboard"); // or your reader page
+        navigate("/reader/dashboard");
       }
     } catch (err) {
       alert(err.response?.data?.msg || "Login failed. Please try again.");
@@ -63,7 +74,7 @@ export default function LoginPage() {
           <h2 className="text-3xl font-bold text-center mb-10 text-gray-800">LOG IN</h2>
 
           <form onSubmit={handleLogin}>
-            {/* ROLE SELECT - NOW SHOWS "Reader" / "Author" */}
+
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
