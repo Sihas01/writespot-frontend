@@ -5,6 +5,17 @@ import SelectField from "./SelectField";
 function ContentStep({ formData, onChange, onBack, onNext }) {
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (formData.manuscript) {
+    const uploadedFileType = formData.manuscript.name.split('.').pop().toLowerCase(); 
+    if (uploadedFileType !== formData.fileFormat) {
+      alert(`Selected file format (${formData.fileFormat}) does not match uploaded file type (${uploadedFileType}).`);
+      return;
+    }
+  } else {
+    alert('Please upload a manuscript file.');
+    return;
+  }
     onNext();
   };
 

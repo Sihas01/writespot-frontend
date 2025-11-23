@@ -11,6 +11,9 @@ import VerifyOTP from "./pages/VerifyOTP";
 import RoleProtectedRoute from "./routes/RoleProtectedRoute";
 import NotFound from "./pages/NotFound";
 import AuthorIndexPage from "./pages/AuthorIndexPage";
+import ReaderPortal from "./pages/ReaderPortal";
+import ReaderHome from "./pages/ReaderHome";
+import Store from "./pages/Store";
 
 
 function App() {
@@ -39,8 +42,19 @@ function App() {
           >
             <Route index element={<AuthorIndexPage />} />
             <Route path="home" element={<AuthorIndexPage />} />
-         
+
             <Route path="publications" element={<PublishingPage />} />
+          </Route>
+
+          {/* Reader portal */}
+          <Route
+            path="/reader/dashboard"
+            element={<RoleProtectedRoute role="reader"><ReaderPortal /></RoleProtectedRoute>}
+          >
+            <Route index element={<ReaderHome />} />
+            <Route path="home" element={<ReaderHome />} />
+            <Route path="store" element={<Store />} />
+
           </Route>
 
           <Route path="*" element={<NotFound />} />
