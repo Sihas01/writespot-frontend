@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import VerifyOTP from "./pages/VerifyOTP";
 import RoleProtectedRoute from "./routes/RoleProtectedRoute";
 import NotFound from "./pages/NotFound";
+import AuthorIndexPage from "./pages/AuthorIndexPage";
 
 
 function App() {
@@ -36,8 +37,9 @@ function App() {
               </RoleProtectedRoute>
             }
           >
-            <Route index element={<AuthorHomePage />} />
-            <Route path="home" element={<AuthorHomePage />} />
+            <Route index element={<AuthorIndexPage />} />
+            <Route path="home" element={<AuthorIndexPage />} />
+         
             <Route path="publications" element={<PublishingPage />} />
           </Route>
 

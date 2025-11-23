@@ -3,12 +3,33 @@ import HomePage from './AuthorHomePage';
 import Header from '../components/AuthorDashboard/Header';
 import Navigation from '../components/AuthorDashboard/Navigation';
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import axios from 'axios';
 
 
 const AuthorDashboard = () => {
    const [showHeader, setShowHeader] = useState(true);
   const [isNavSticky, setIsNavSticky] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [hasBooks, setHasBooks] = useState(null);
+  const user = JSON.parse(localStorage.getItem('user'));
+  const userName = user?.name;
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      const token = localStorage.getItem('token');
+      try {
+        const res = await axios.get('http://localhost:3000/books/my', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setHasBooks(res.data.length > 0);
+      } catch (err) {
+        console.error(err);
+        setHasBooks(false);
+      }
+    };
+
+    fetchBooks();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -53,7 +74,7 @@ const currentTab = location.pathname.split("/").pop() || "home";
 
   return (
    <div className="min-h-screen bg-gray-50">
-      <Header username="John" isVisible={showHeader} />
+      <Header username={userName.split(" ")[0]} isVisible={showHeader} />
       <Navigation 
         activeTab={currentTab} 
         onTabChange={handleTabChange}
@@ -61,7 +82,7 @@ const currentTab = location.pathname.split("/").pop() || "home";
       />
       
       <main className={`px-4 lg:px-32 mx-auto py-6 ${isNavSticky ? 'mt-16' : ''}`}>
-        <Outlet /> 
+        <Outlet context={{ hasBooks }} /> 
       </main>
     </div>
   );
