@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import logo from "../assets/images/logo.png";
-import pattern from "../assets/images/pattern.png";   // ← Already correct
+import pattern from "../assets/images/pattern.png";   
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -31,7 +31,7 @@ function Registration() {
 
     setLoading(true);
     try {
-      await axios.post("http://localhost:5000/api/auth/register", {
+      await axios.post("http://localhost:3000/api/auth/register", {
         name: formData.name.trim(),
         email: formData.email.trim(),
         password: formData.password,

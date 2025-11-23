@@ -26,7 +26,7 @@ export default function VerifyOTP() {
 
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/verify-otp", {
+      const res = await axios.post("http://localhost:3000/api/auth/verify-otp", {
         email: email,
         otp: otp,
       });
