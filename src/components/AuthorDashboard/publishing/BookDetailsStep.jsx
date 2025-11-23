@@ -122,7 +122,7 @@ function BookDetailsStep({ formData, onChange, onNext }) {
         <div className="grid grid-cols-1 md:grid-cols-3">
           <h2 className="col-span-1">Categories</h2>
           <div className="col-span-2 pt-4 md:pt-0">
-            <h2>Choose two categories for your book</h2>
+            <h2>Choose Category for your book</h2>
 
             <SelectField
               label="Genre/Category"
