@@ -3,12 +3,31 @@ import HomePage from './AuthorHomePage';
 import Header from '../components/AuthorDashboard/Header';
 import Navigation from '../components/AuthorDashboard/Navigation';
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import axios from 'axios';
 
 
 const AuthorDashboard = () => {
    const [showHeader, setShowHeader] = useState(true);
   const [isNavSticky, setIsNavSticky] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [hasBooks, setHasBooks] = useState(null);
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      const token = localStorage.getItem('token');
+      try {
+        const res = await axios.get('http://localhost:3000/books/my', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setHasBooks(res.data.length > 0);
+      } catch (err) {
+        console.error(err);
+        setHasBooks(false);
+      }
+    };
+
+    fetchBooks();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -61,7 +80,7 @@ const currentTab = location.pathname.split("/").pop() || "home";
       />
       
       <main className={`px-4 lg:px-32 mx-auto py-6 ${isNavSticky ? 'mt-16' : ''}`}>
-        <Outlet /> 
+        <Outlet context={{ hasBooks }} /> 
       </main>
     </div>
   );
