@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { MdEdit, MdClose } from 'react-icons/md';
+import { MdEdit, MdClose, MdDelete } from 'react-icons/md';
 
 const AuthorDashboardAfter = () => {
     const [books, setBooks] = useState([]);
@@ -28,6 +28,23 @@ const AuthorDashboardAfter = () => {
 
         fetchBooks();
     }, []);
+
+    const handleDelete = async (book) => {
+        if (window.confirm(`Are you sure you want to delete "${book.title}"?`)) {
+            try {
+                const token = localStorage.getItem("token");
+                await axios.delete(
+                    `http://localhost:3000/books/${book._id}`,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                setBooks(books.filter(b => b._id !== book._id));
+                alert('Book deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting book:', error);
+                alert('Failed to delete book');
+            }
+        }
+    };
 
     const handleEdit = (book) => {
         setSelectedBook(book);
@@ -83,11 +100,11 @@ const AuthorDashboardAfter = () => {
                 formData,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            
-            setBooks(books.map(book => 
+
+            setBooks(books.map(book =>
                 book._id === formData._id ? { ...book, ...formData } : book
             ));
-            
+
             setIsModalOpen(false);
             alert('Book updated successfully!');
         } catch (error) {
@@ -110,10 +127,20 @@ const AuthorDashboardAfter = () => {
 
             <h3 className="mb-4 text-xl font-nunito font-normal text-[#3F4D61]">Trending Books</h3>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mt-4">
-                {books.map((book) => (
-                    <div key={book._id}>
+                {books.map((book, index) => (
+                    <div
+                        key={book._id}
+                        className={`
+        ${index > 1 ? "hidden" : ""} 
+        ${index < 5 ? "md:block" : "md:hidden"}
+      `}
+                    >
                         {book.coverUrl ? (
-                            <img src={book.coverUrl} alt={book.title} className="w-40 h-60 object-cover" />
+                            <img
+                                src={book.coverUrl}
+                                alt={book.title}
+                                className="w-40 h-60 object-cover"
+                            />
                         ) : (
                             <div className="w-40 h-60 bg-gray-200 flex items-center justify-center">
                                 No Cover
@@ -122,6 +149,7 @@ const AuthorDashboardAfter = () => {
                     </div>
                 ))}
             </div>
+
 
             <h3 className="mb-4 text-xl mt-10 font-nunito font-normal text-[#3F4D61]">Book Analytics</h3>
             <div className="overflow-x-auto">
@@ -165,13 +193,23 @@ const AuthorDashboardAfter = () => {
                                 <td className="px-8 py-4">100</td>
                                 <td className="px-8 py-4">02</td>
                                 <td className="px-8 py-4">
-                                    <button
-                                        onClick={() => handleEdit(book)}
-                                        className="text-[#5A7C65] hover:text-[#4a6555] font-medium inline-flex items-center gap-1 cursor-pointer"
-                                    >
-                                        <MdEdit size={18} />
-                                        Edit
-                                    </button>
+                                    <div className="flex items-center justify-center gap-4">
+                                        <button
+                                            onClick={() => handleEdit(book)}
+                                            className="text-[#5A7C65] hover:text-[#4a6555] font-medium inline-flex items-center gap-1 cursor-pointer"
+                                        >
+                                            <MdEdit size={18} />
+                                            Edit
+                                        </button>
+
+                                        <button
+                                            onClick={() => handleDelete(book)}
+                                            className="text-[#f0300e] hover:text-[#f44e31] font-medium inline-flex items-center gap-1 cursor-pointer"
+                                        >
+                                            <MdDelete size={18} />
+                                            Delete
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
