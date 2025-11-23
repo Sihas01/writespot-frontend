@@ -1,21 +1,51 @@
 import { FiUploadCloud } from "react-icons/fi";
 import { CiCircleRemove } from "react-icons/ci";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function FileUpload({ label, name, onChange, accept, required = false, file }) {
   const [error, setError] = useState("");
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   const handleChange = (e) => {
-    setError(""); // clear error when user selects a file
-    onChange(e);
+    setError(""); 
+    onChange(e); 
+
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      // Image preview
+      if (selectedFile.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onloadend = () => setPreviewUrl(reader.result);
+        reader.readAsDataURL(selectedFile);
+      } 
+      // PDF preview
+      else if (selectedFile.type === "application/pdf") {
+        setPreviewUrl(URL.createObjectURL(selectedFile));
+      } else {
+        setPreviewUrl(null);
+      }
+    } else {
+      setPreviewUrl(null);
+    }
   };
 
+  // Remove selected file
   const handleRemove = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setError(required ? "Please upload a file." : "");
+    setPreviewUrl(null);
     onChange({ target: { name, files: [] } });
   };
+
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl && file?.type === "application/pdf") {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl, file]);
 
   return (
     <div>
@@ -29,13 +59,22 @@ function FileUpload({ label, name, onChange, accept, required = false, file }) {
           name={name}
           onChange={handleChange}
           accept={accept}
-          className="hidden"     // no more required here
+          className="hidden"
           id={name}
         />
 
         <label htmlFor={name} className="cursor-pointer block">
           {file ? (
             <div className="space-y-2">
+              {/* Preview */}
+              {previewUrl && file.type.startsWith("image/") && (
+                <img src={previewUrl} alt="preview" className="mx-auto max-h-32" />
+              )}
+              {previewUrl && file.type === "application/pdf" && (
+                <iframe src={previewUrl} title="PDF Preview" width="100%" height="400" />
+              )}
+
+              {/* File info & remove */}
               <div className="flex items-center justify-center gap-2 bg-gray-50 p-3 rounded">
                 <FiUploadCloud className="w-5 h-5 text-green-500" />
                 <span className="text-sm text-gray-700 font-medium">{file.name}</span>
@@ -47,6 +86,7 @@ function FileUpload({ label, name, onChange, accept, required = false, file }) {
                   <CiCircleRemove className="w-4 h-4" />
                 </button>
               </div>
+
               <p className="text-xs text-gray-500">Click to change file</p>
             </div>
           ) : (
@@ -59,7 +99,7 @@ function FileUpload({ label, name, onChange, accept, required = false, file }) {
         </label>
       </div>
 
-      {/* 🚨 Custom validation message */}
+      {/* Validation */}
       {required && !file && error && (
         <p className="text-red-500 text-xs mt-1">{error}</p>
       )}

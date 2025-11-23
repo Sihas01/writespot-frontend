@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { AiOutlineClose, AiOutlineMenu } from 'react-icons/ai';
+import { Link } from "react-router-dom";
+
 
 const NavBar = () => {
     const navItems = [
@@ -29,8 +31,15 @@ const NavBar = () => {
                 </div>
 
                 <div className="hidden md:flex gap-4 items-center">
-                    <a href="#">Sign In</a>
-                    <button className="bg-[#074B03] pt-2 pb-2 pr-4 pl-4 text-white rounded-md">Sign Up Now</button>
+                    <Link to="/login">Sign In</Link>
+
+                    <Link
+                        to="/registration"
+                        className="bg-[#074B03] pt-2 pb-2 pr-4 pl-4 text-white rounded-md"
+                    >
+                        Sign Up Now
+                    </Link>
+
                 </div>
 
                 {/* Mobile Navigation Icon */}
@@ -67,8 +76,14 @@ const NavBar = () => {
                     </ul>
 
                     <div className="flex flex-col gap-4 mt-12">
-                        <a href="#">Sign In</a>
-                        <button className="bg-[#074B03] pt-2 pb-2 pr-4 pl-4 text-white rounded-md">Sign Up Now</button>
+                        <Link to="/login">Sign In</Link>
+
+                        <Link
+                            to="/registration"
+                            className="bg-[#074B03] pt-2 pb-2 pr-4 pl-4 text-white rounded-md"
+                        >
+                            Sign Up Now
+                        </Link>
                     </div>
                 </div>
             </ul>
