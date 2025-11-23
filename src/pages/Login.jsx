@@ -9,7 +9,7 @@ import axios from "axios";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState(""); // "Reader" or "Author"
+  const [role, setRole] = useState(""); 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -32,7 +32,7 @@ export default function LoginPage() {
       
       // Redirect based on role
       if (role === "Author") {
-        navigate("/author/dashboard");
+        navigate("/dashboard"); 
       } else {
         navigate("/reader/dashboard"); // or your reader page
       }

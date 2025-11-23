@@ -12,6 +12,7 @@ const PublishingPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState(null);
  
+  const token = localStorage.getItem("token");
 
   const [formData, setFormData] = useState({
     // Book Details
@@ -95,59 +96,88 @@ const PublishingPage = () => {
   };
 
   const handleSubmit = async () => {
-    setIsLoading(true);
-    setAlert(null);
+  setIsLoading(true);
+  setAlert(null);
 
-    try {
-      // Create FormData object for file uploads
-      const submitData = new FormData();
+  try {
+    const updatedFormData = { ...formData };
 
-      // Append all form fields
-      Object.keys(formData).forEach(key => {
-        if (formData[key] !== null && formData[key] !== '') {
-          submitData.append(key, formData[key]);
+    // List of files to upload
+    const filesToUpload = ['coverImage', 'manuscript'];
+
+    for (const field of filesToUpload) {
+      if (formData[field]) {
+        // 1️⃣ Request a pre-signed URL from your Lambda
+        const presignResponse = await fetch(
+          'https://h4urlwkjgd.execute-api.us-east-1.amazonaws.com/generate-upload-url',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileName: formData[field].name,
+              fileType: formData[field].type,
+              fileField: field,
+              userRole: 'author', // or dynamically from your auth
+            }),
+          }
+        );
+
+        if (!presignResponse.ok) {
+          throw new Error(`Failed to get upload URL for ${field}`);
         }
-      });
 
+        const { uploadUrl, key } = await presignResponse.json();
 
-      const response = await fetch('http://localhost:3000/api/ebooks', {
-        method: 'POST',
-        body: submitData
-        // Don't set Content-Type header - browser will set it automatically with boundary
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to submit eBook');
-      }
-
-      const result = await response.json();
-
-      setAlert({
-        type: 'success',
-        message: 'eBook published successfully!'
-      });
-
-      // Reset form after successful submission
-      setTimeout(() => {
-        setFormData({
-          language: '', title: '', subtitle: '', authorFirstName: '',
-          authorLastName: '', isbn: '',
-          description: '', genre: '', keywords: '', coverImage: null,
-          manuscript: null, fileFormat: '', 
-          price: '', discount: ''
+        // 2️⃣ Upload the file to S3 using the pre-signed URL
+        const uploadResult = await fetch(uploadUrl, {
+          method: 'PUT',
+          body: formData[field],
+          headers: {
+            'Content-Type': formData[field].type,
+          },
         });
-        setCurrentStep(0);
-      }, 2000);
 
-    } catch (error) {
-      setAlert({
-        type: 'error',
-        message: error.message || 'Failed to publish eBook. Please try again.'
-      });
-    } finally {
-      setIsLoading(false);
+        if (!uploadResult.ok) {
+          throw new Error(`Failed to upload ${field} to S3`);
+        }
+
+        // 3️⃣ Replace file object with S3 key
+        updatedFormData[field] = key;
+      }
     }
-  };
+
+    // 4️⃣ Submit final data to backend (without files, just keys)
+    const response = await fetch('http://localhost:3000/books', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json','Authorization': `Bearer ${token}`, },
+      body: JSON.stringify(updatedFormData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to submit eBook');
+    }
+
+    setAlert({ type: 'success', message: 'eBook published successfully!' });
+
+    // Reset form
+    setTimeout(() => {
+      setFormData({
+        language: '', title: '', subtitle: '', authorFirstName: '',
+        authorLastName: '', isbn: '',
+        description: '', genre: '', keywords: '', coverImage: null,
+        manuscript: null, fileFormat: '', 
+        price: '', discount: ''
+      });
+      setCurrentStep(0);
+    }, 2000);
+
+  } catch (error) {
+    setAlert({ type: 'error', message: error.message || 'Upload failed' });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50">

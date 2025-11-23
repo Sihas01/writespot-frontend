@@ -8,33 +8,43 @@ import PublishingPage from "./pages/PublishingPage";
 import Registration from "./pages/Registration";
 import Login from "./pages/Login";
 import VerifyOTP from "./pages/VerifyOTP";
+import RoleProtectedRoute from "./routes/RoleProtectedRoute";
+import NotFound from "./pages/NotFound";
 
 
 function App() {
- 
+
 
   return (
     <>
       <Router>
-      <Routes>
+        <Routes>
 
-        {/* Landing page */}
-        <Route path="/" element={<LandingPage />} />
+          {/* Landing page */}
+          <Route path="/" element={<LandingPage />} />
           <Route path="/registration" element={<Registration />} />
           <Route path="/login" element={<Login />} />
           <Route path="/verify-otp" element={<VerifyOTP />} />
 
 
-        {/* Author Dashboard */}
-        <Route path="/dashboard" element={<AuthorDashboard />}>
-          <Route index element={<AuthorHomePage />} />
-          <Route path="home" element={<AuthorHomePage />} />
-          <Route path="publications" element={<PublishingPage />} />
-          {/* <Route path="revenue" element={<RevenuePage />} /> */}
-        </Route>
+          {/* Author portal */}
+          <Route
+            path="/dashboard"
+            element={
+              <RoleProtectedRoute role="author">
+                <AuthorDashboard />
+              </RoleProtectedRoute>
+            }
+          >
+            <Route index element={<AuthorHomePage />} />
+            <Route path="home" element={<AuthorHomePage />} />
+            <Route path="publications" element={<PublishingPage />} />
+          </Route>
 
-      </Routes>
-    </Router>
+          <Route path="*" element={<NotFound />} />
+
+        </Routes>
+      </Router>
     </>
   )
 }
