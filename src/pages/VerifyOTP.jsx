@@ -1,5 +1,4 @@
-// src/pages/VerifyOTP.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import logo from "../assets/images/logo.png";
@@ -8,36 +7,56 @@ import pattern from "../assets/images/pattern.png";
 export default function VerifyOTP() {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [message, setMessage] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
 
-  // SUPER SAFE WAY TO GET EMAIL — WORKS EVERY TIME
-  const email =
-    location.state?.email ||
-    location.state?.state?.email ||
-    location?.state?.state?.state?.email ||
-    "your email";
+  const email = location.state?.email || "your email";
+  const autoResend = location.state?.autoResend;
+
+  // Auto-resend OTP when coming from login modal
+  useEffect(() => {
+    if (autoResend && email && email !== "your email") {
+      handleResend();
+    }
+  }, []);
 
   const handleVerify = async (e) => {
     e.preventDefault();
     if (otp.length !== 6) {
-      return alert("Please enter 6-digit OTP");
+      setMessage("Please enter 6-digit OTP");
+      return;
     }
 
     setLoading(true);
+    setMessage("");
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/verify-otp`, {
-        email: email,
-        otp: otp,
+        email,
+        otp,
       });
 
       localStorage.setItem("token", res.data.token);
-      alert("Email verified successfully! Welcome to WriteSpot");
-      navigate("/login"); 
+      setMessage("Email verified successfully! Redirecting...");
+      setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
-      alert(err.response?.data?.msg || "Invalid or expired OTP");
+      setMessage(err.response?.data?.msg || "Invalid or expired OTP");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setResendLoading(true);
+    setMessage("Sending new code...");
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/resend-otp`, { email });
+      setMessage("New OTP sent! Check your email");
+    } catch (err) {
+      setMessage(err.response?.data?.msg || "Failed to resend OTP");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -69,6 +88,12 @@ export default function VerifyOTP() {
             <strong className="text-green-700 text-lg">{email}</strong>
           </p>
 
+          {message && (
+            <p className={`text-center mb-6 text-sm font-medium ${message.includes("sent") || message.includes("success") ? "text-green-700" : "text-red-600"}`}>
+              {message}
+            </p>
+          )}
+
           <form onSubmit={handleVerify}>
             <input
               type="text"
@@ -78,6 +103,7 @@ export default function VerifyOTP() {
               placeholder="000000"
               className="w-full text-center text-4xl tracking-widest py-6 px-4 border-2 border-yellow-500 rounded-xl focus:outline-none focus:border-yellow-600 transition text-gray-800"
               required
+              autoFocus
             />
 
             <button
@@ -91,9 +117,13 @@ export default function VerifyOTP() {
 
           <p className="text-center mt-8 text-gray-600">
             Didn't receive code?{" "}
-            <span className="text-green-700 font-bold cursor-pointer">
-              Resend OTP
-            </span>
+            <button
+              onClick={handleResend}
+              disabled={resendLoading}
+              className="text-green-700 font-bold hover:underline"
+            >
+              {resendLoading ? "Sending..." : "Send Again"}
+            </button>
           </p>
         </div>
       </div>
