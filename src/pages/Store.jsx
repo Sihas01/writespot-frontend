@@ -13,7 +13,7 @@ const Store = () => {
     const [filteredBooks, setFilteredBooks] = useState([]);
 
     useEffect(() => {
-        axios.get("http://localhost:3000/books")
+        axios.get(`${import.meta.env.VITE_API_URL}/books`)
             .then((res) => {
                 setBooks(res.data);
                 setFilteredBooks(res.data);

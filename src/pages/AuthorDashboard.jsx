@@ -18,7 +18,7 @@ const AuthorDashboard = () => {
     const fetchBooks = async () => {
       const token = localStorage.getItem('token');
       try {
-        const res = await axios.get('http://localhost:3000/books/my', {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/books/my`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setHasBooks(res.data.length > 0);

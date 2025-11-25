@@ -26,14 +26,14 @@ export default function VerifyOTP() {
 
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:3000/api/auth/verify-otp", {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/verify-otp`, {
         email: email,
         otp: otp,
       });
 
       localStorage.setItem("token", res.data.token);
       alert("Email verified successfully! Welcome to WriteSpot");
-      navigate("/author/dashboard"); // change to your dashboard path
+      navigate("/login"); 
     } catch (err) {
       alert(err.response?.data?.msg || "Invalid or expired OTP");
     } finally {

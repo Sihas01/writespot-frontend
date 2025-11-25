@@ -16,7 +16,7 @@ const AuthorDashboardAfter = () => {
             try {
                 const token = localStorage.getItem("token");
                 const res = await axios.get(
-                    `http://localhost:3000/books/mybooks`,
+                    `${import.meta.env.VITE_API_URL}/books/mybooks`,
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
 
@@ -34,7 +34,7 @@ const AuthorDashboardAfter = () => {
             try {
                 const token = localStorage.getItem("token");
                 await axios.delete(
-                    `http://localhost:3000/books/${book._id}`,
+                    `${import.meta.env.VITE_API_URL}/books/${book._id}`,
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
                 setBooks(books.filter(b => b._id !== book._id));
@@ -96,7 +96,7 @@ const AuthorDashboardAfter = () => {
         try {
             const token = localStorage.getItem("token");
             await axios.put(
-                `http://localhost:3000/books/${formData._id}`,
+                `${import.meta.env.VITE_API_URL}/books/${formData._id}`,
                 formData,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
