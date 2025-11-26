@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [showForm, setShowForm] = useState(true);
   const [verifyMode, setVerifyMode] = useState(false);
   const [verifyEmail, setVerifyEmail] = useState("");
+  const [verifyRole, setVerifyRole] = useState("");
 
   const navigate = useNavigate();
 
@@ -50,6 +51,7 @@ export default function LoginPage() {
 
       if (msg.toLowerCase().includes("verify your email")) {
         setVerifyEmail(email.trim().toLowerCase());
+        setVerifyRole(role);
         setVerifyMode(true);
         setShowForm(false);
       } else {
@@ -62,7 +64,7 @@ export default function LoginPage() {
 
   const goToVerifyOTP = () => {
     navigate("/verify-otp", {
-      state: { email: verifyEmail, autoResend: true }
+      state: { email: verifyEmail, role: verifyRole, autoResend: true }
     });
   };
 
@@ -70,6 +72,7 @@ export default function LoginPage() {
     setVerifyMode(false);
     setShowForm(true);
     setVerifyEmail("");
+    setVerifyRole("");
   };
 
   return (
@@ -182,9 +185,12 @@ export default function LoginPage() {
                 </div>
 
                 <h3 className="text-3xl font-bold text-red-800 mb-4">Email Not Verified</h3>
-                <p className="text-gray-700 text-lg mb-8">
+                <p className="text-gray-700 text-lg mb-2">
                   We sent a 6-digit code to:<br />
                   <strong className="text-green-700 text-xl">{verifyEmail}</strong>
+                </p>
+                <p className="text-gray-600 text-sm mb-8">
+                  Role: <strong className="text-green-700">{verifyRole}</strong>
                 </p>
 
                 <button

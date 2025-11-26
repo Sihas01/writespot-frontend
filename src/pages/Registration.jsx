@@ -17,6 +17,7 @@ function Registration() {
   const [message, setMessage] = useState(""); // success or error from server
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  
 
   // Validation functions
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -82,9 +83,10 @@ function Registration() {
       });
 
       setMessage("Registration successful! Check your email for OTP verification.");
-      setTimeout(() => {
-        navigate("/verify-otp", { state: { email: formData.email.trim() } });
-      }, 2000);
+     setTimeout(() => {
+  navigate("/verify-otp", { state: { email: formData.email.trim(), role: formData.role } });
+}, 2000);
+
     } catch (err) {
       const errorMsg = err.response?.data?.msg || "Registration failed. Please try again.";
       setMessage(errorMsg);

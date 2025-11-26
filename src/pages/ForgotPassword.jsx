@@ -8,12 +8,13 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/forgot-password`, { email });
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/forgot-password`, { email, role });
       setMessage(res.data.msg);
     } catch (err) {
       setMessage("Something went wrong. Try again.");
@@ -50,6 +51,11 @@ export default function ForgotPassword() {
               required
             />
 
+            <select name="role" id="role" value={role} onChange={(e) => setRole(e.target.value)} className="w-full border border-gray-300 rounded-lg px-5 py-4 mb-6 text-base" required>
+              <option value="">Select your role</option>
+              <option value="author">Author</option>
+              <option value="reader">Reader</option>
+            </select>
             <button
               type="submit"
               disabled={loading}

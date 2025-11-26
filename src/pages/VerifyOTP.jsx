@@ -14,6 +14,7 @@ export default function VerifyOTP() {
 
   const email = location.state?.email || "your email";
   const autoResend = location.state?.autoResend;
+  const role = location.state?.role;
 
   // Auto-resend OTP when coming from login modal
   const [otpSent, setOtpSent] = useState(false);
@@ -38,10 +39,12 @@ useEffect(() => {
 
     setLoading(true);
     setMessage("");
+    console.log(role);
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/verify-otp`, {
         email,
         otp,
+        role,
       });
 
       localStorage.setItem("token", res.data.token);
@@ -58,7 +61,7 @@ useEffect(() => {
     setResendLoading(true);
     setMessage("Sending new code...");
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/resend-otp`, { email });
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/resend-otp`, { email,role });
       setMessage("New OTP sent! Check your email");
     } catch (err) {
       setMessage(err.response?.data?.msg || "Failed to resend OTP");
