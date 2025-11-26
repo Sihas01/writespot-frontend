@@ -2,6 +2,7 @@ import { FaArrowRightLong } from "react-icons/fa6";
 import guawashape from '../../assets/images/Vector.svg';
 import girl from '../../assets/images/girl.png';
 import underlineShape from '../../assets/images/underlineShape.svg';
+import { Link } from "react-router-dom";
 
 
 const HeroSection = () => {
@@ -24,10 +25,13 @@ const HeroSection = () => {
 
                         <div className="flex items-center justify-center lg:justify-start">
                             <div className="inline-block bg-[#074B03] text-white rounded-md mt-6">
-                                <div className="flex items-center gap-14 p-4 font-poppins-md">
+                                <Link
+                                    to="/login"
+                                    className="flex items-center gap-14 p-4 font-poppins-md cursor-pointer"
+                                >
                                     Get Started
                                     <FaArrowRightLong />
-                                </div>
+                                </Link>
                             </div>
                         </div>
                     </div>
