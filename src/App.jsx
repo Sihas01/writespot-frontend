@@ -14,6 +14,8 @@ import AuthorIndexPage from "./pages/AuthorIndexPage";
 import ReaderPortal from "./pages/ReaderPortal";
 import ReaderHome from "./pages/ReaderHome";
 import Store from "./pages/Store";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 
 function App() {
@@ -29,6 +31,8 @@ function App() {
           <Route path="/registration" element={<Registration />} />
           <Route path="/login" element={<Login />} />
           <Route path="/verify-otp" element={<VerifyOTP />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
 
           {/* Author portal */}

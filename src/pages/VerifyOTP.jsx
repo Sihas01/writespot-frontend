@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import logo from "../assets/images/logo.png";
@@ -16,11 +16,18 @@ export default function VerifyOTP() {
   const autoResend = location.state?.autoResend;
 
   // Auto-resend OTP when coming from login modal
-  useEffect(() => {
-    if (autoResend && email && email !== "your email") {
-      handleResend();
-    }
-  }, []);
+  const [otpSent, setOtpSent] = useState(false);
+
+const didRun = useRef(false);
+
+useEffect(() => {
+  if (autoResend && !didRun.current) {
+    didRun.current = true;
+    handleResend();
+  }
+}, [autoResend]);
+
+
 
   const handleVerify = async (e) => {
     e.preventDefault();
