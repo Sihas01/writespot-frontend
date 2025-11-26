@@ -30,7 +30,7 @@ export default function ForgotPassword() {
         style={{ backgroundImage: `url(${pattern})`, backgroundSize: "cover" }}
       >
         <div className="absolute inset-0 bg-green-800/70"></div>
-        <h1 className="absolute top-10 left-10 text-4xl lg:text-6xl font-light text-white tracking-wide z-20">
+        <h1 className="absolute top-10 left-10 text-4xl lg:text-6xl font-light font-inknut text-white tracking-wide z-20">
           WriteSpot
         </h1>
         <img src={logo} alt="Logo" className="w-64 lg:w-96 z-10 drop-shadow-2xl" />

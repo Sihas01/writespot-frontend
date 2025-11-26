@@ -105,7 +105,7 @@ function Registration() {
       {/* LEFT - FORM */}
       <div className="flex-1 flex flex-col justify-center px-6 sm:px-10 lg:px-24 xl:px-32 py-10 lg:py-0 bg-white">
         <div className="max-w-md mx-auto w-full">
-          <h2 className="text-3xl sm:text-4xl font-semibold text-center mb-8 text-gray-800 mt-8">
+          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-8 text-gray-800 mt-8">
             Create an Account
           </h2>
 

@@ -96,17 +96,16 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row relative">
       {/* LEFT GREEN PANEL - Desktop */}
-      <div className="hidden lg:block lg:w-2/5 bg-green-800 relative overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-40"
-          style={{ backgroundImage: `url(${pattern})` }}
-        />
-        <div className="absolute inset-0 bg-green-800/70" />
-        <h1 className="absolute top-12 left-12 text-6xl font-extrabold text-white tracking-tight drop-shadow-2xl">
+      <div
+        className="hidden lg:block w-2/5 bg-green-800 bg-cover bg-center relative "
+        style={{ backgroundImage: `url(${pattern})` }}
+      >
+        <div className="absolute inset-0 bg-green-800/70"></div>
+        <h1 className="text-center mt-8 top-12 left-12 text-5xl font-extrabold text-white font-inknut tracking-tight drop-shadow-2xl z-10">
           WriteSpot
         </h1>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <img src={logo} alt="WriteSpot" className="w-4/5 max-w-lg drop-shadow-2xl" />
+        <div className="absolute inset-0 flex items-center justify-center z-10">
+          <img src={logo} alt="WriteSpot Books" className="w-4/5 max-w-lg drop-shadow-2xl" />
         </div>
       </div>
 

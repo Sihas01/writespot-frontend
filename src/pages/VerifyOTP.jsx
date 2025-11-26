@@ -82,7 +82,7 @@ useEffect(() => {
     }}
   >
     <div className="absolute inset-0 bg-green-800/70"></div>
-    <h1 className="absolute top-6 lg:top-10 left-6 lg:left-10 text-4xl lg:text-6xl font-light text-white tracking-wider">
+    <h1 className="absolute top-6 lg:top-10 left-6 lg:left-10 text-4xl lg:text-6xl font-light font-inknut text-white tracking-wider">
       WriteSpot
     </h1>
     <img
