@@ -23,21 +23,21 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="flex min-h-screen">
-      {/* LEFT SIDE - GREEN PATTERN */}
+    <div className="flex min-h-screen flex-col lg:flex-row justify-center">
+      {/* LEFT SIDE */}
       <div
-        className="relative w-1/2 bg-green-800 flex flex-col justify-center items-center overflow-hidden"
+        className="relative w-full lg:w-1/2 bg-green-800 hidden lg:flex flex-col justify-center items-center overflow-hidden h-64 lg:h-auto"
         style={{ backgroundImage: `url(${pattern})`, backgroundSize: "cover" }}
       >
         <div className="absolute inset-0 bg-green-800/70"></div>
-        <h1 className="absolute top-10 left-10 text-6xl font-light text-white tracking-wide z-20">
+        <h1 className="absolute top-10 left-10 text-4xl lg:text-6xl font-light text-white tracking-wide z-20">
           WriteSpot
         </h1>
-        <img src={logo} alt="Logo" className="w-96 z-10 drop-shadow-2xl" />
+        <img src={logo} alt="Logo" className="w-64 lg:w-96 z-10 drop-shadow-2xl" />
       </div>
 
-      {/* RIGHT SIDE - FORM */}
-      <div className="w-1/2 bg-white flex items-center justify-center px-20">
+      {/* RIGHT SIDE (hidden on mobile) */}
+      <div className="flex lg:w-1/2 bg-white items-center justify-center px-10">
         <div className="w-full max-w-md">
           <h2 className="text-3xl font-bold text-center mb-10 text-gray-800">Reset Password</h2>
 

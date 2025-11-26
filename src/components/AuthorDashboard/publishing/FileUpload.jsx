@@ -14,6 +14,14 @@ function FileUpload({ label, name, onChange, accept, required = false, file }) {
     if (selectedFile) {
       const fileType = selectedFile.type;
       const extension = selectedFile.name.split(".").pop().toLowerCase();
+      const maxSize = 50 * 1024 * 1024;
+
+      if (selectedFile.size > maxSize) {
+        setError("File size must be less than 50 MB.");
+        setPreviewUrl(null);
+        onChange({ target: { name, files: [] } }); // reset
+        return;
+      }
 
       // Image preview
       if (fileType.startsWith("image/")) {
@@ -24,11 +32,11 @@ function FileUpload({ label, name, onChange, accept, required = false, file }) {
       // PDF preview
       else if (extension === "pdf") {
         setPreviewUrl(URL.createObjectURL(selectedFile));
-      } 
+      }
       // Other docs (epub, mobi, docx) → no preview, just icon
       else if (["epub", "mobi", "docx", "doc"].includes(extension)) {
         setPreviewUrl(null);
-      } 
+      }
       else {
         setPreviewUrl(null);
         setError("Unsupported file type");

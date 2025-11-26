@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF } from "react-icons/fa6";
@@ -20,6 +20,21 @@ export default function LoginPage() {
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+
+    if (token && user?.role) {
+      if (user.role.toLowerCase() === "author") {
+        navigate("/dashboard");
+      } else {
+        navigate("/reader/dashboard");
+      }
+    }
+  }, [navigate]);
+
+
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!role) return alert("Please select your role");
@@ -33,7 +48,10 @@ export default function LoginPage() {
         rememberMe,
       });
 
+
       localStorage.setItem("token", res.data.token);
+
+
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
       alert("Login Successful! Welcome back to WriteSpot");
@@ -131,8 +149,8 @@ export default function LoginPage() {
                   required
                 />
 
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-3 cursor-pointer">
+                <div className="flex items-center justify-end text-right">
+                  <label className=" items-center gap-3 cursor-pointer hidden">
                     <input
                       type="checkbox"
                       checked={rememberMe}
@@ -141,7 +159,7 @@ export default function LoginPage() {
                     />
                     <span className="text-gray-700">Remember me</span>
                   </label>
-                  <Link to="/forgot-password" className="text-green-700 font-medium hover:underline text-sm">
+                  <Link to="/forgot-password" className="text-green-700 font-medium hover:underline text-sm text-right">
                     Forgot Password?
                   </Link>
                 </div>

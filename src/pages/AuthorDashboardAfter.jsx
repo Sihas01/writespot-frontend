@@ -7,6 +7,7 @@ const AuthorDashboardAfter = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedBook, setSelectedBook] = useState(null);
     const [formData, setFormData] = useState(null);
+    const [errors, setErrors] = useState({});
 
     const user = JSON.parse(localStorage.getItem("user"));
     const userName = user?.name;
@@ -65,11 +66,67 @@ const AuthorDashboardAfter = () => {
             isbn: book.isbn || "",
             fileFormat: book.fileFormat || "pdf"
         });
+        setErrors({});
         setIsModalOpen(true);
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+
+        // Author validation
+        if (!formData.author.firstName.trim()) {
+            newErrors.firstName = "First name is required";
+        }
+        if (!formData.author.lastName.trim()) {
+            newErrors.lastName = "Last name is required";
+        }
+
+        // Title validation
+        if (!formData.title.trim()) {
+            newErrors.title = "Title is required";
+        } else if (formData.title.trim().length < 3) {
+            newErrors.title = "Title must be at least 3 characters";
+        }
+
+        // Description validation
+        if (!formData.description.trim()) {
+            newErrors.description = "Description is required";
+        } else if (formData.description.trim().length < 20) {
+            newErrors.description = "Description must be at least 20 characters";
+        }
+
+        // Price validation
+        if (formData.price === "" || formData.price === null) {
+            newErrors.price = "Price is required";
+        } else if (formData.price < 0) {
+            newErrors.price = "Price cannot be negative";
+        }
+
+        // Discount validation
+        if (formData.discount < 0 || formData.discount > 100) {
+            newErrors.discount = "Discount must be between 0 and 100";
+        }
+
+        // ISBN validation (if provided)
+        if (formData.isbn && formData.isbn.trim()) {
+            const isbnRegex = /^(?:ISBN(?:-1[03])?:? )?(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]$/;
+            if (!isbnRegex.test(formData.isbn.replace(/[-\s]/g, ''))) {
+                newErrors.isbn = "Please enter a valid ISBN";
+            }
+        }
+
+        // Keywords validation
+        if (formData.keywords.length === 0) {
+            newErrors.keywords = "At least one keyword is required";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
+        
         if (name.includes('.')) {
             const [parent, child] = name.split('.');
             setFormData(prev => ({
@@ -79,20 +136,36 @@ const AuthorDashboardAfter = () => {
                     [child]: value
                 }
             }));
+            // Clear error for this field
+            if (errors[child]) {
+                setErrors(prev => ({ ...prev, [child]: "" }));
+            }
         } else {
             setFormData(prev => ({
                 ...prev,
                 [name]: value
             }));
+            // Clear error for this field
+            if (errors[name]) {
+                setErrors(prev => ({ ...prev, [name]: "" }));
+            }
         }
     };
 
     const handleKeywordsChange = (e) => {
         const keywords = e.target.value.split(',').map(k => k.trim()).filter(k => k);
         setFormData(prev => ({ ...prev, keywords }));
+        if (errors.keywords) {
+            setErrors(prev => ({ ...prev, keywords: "" }));
+        }
     };
 
     const handleSave = async () => {
+        if (!validateForm()) {
+            alert('Please fix all validation errors before saving');
+            return;
+        }
+
         try {
             const token = localStorage.getItem("token");
             await axios.put(
@@ -117,6 +190,7 @@ const AuthorDashboardAfter = () => {
         setIsModalOpen(false);
         setSelectedBook(null);
         setFormData(null);
+        setErrors({});
     };
 
     return (
@@ -131,9 +205,9 @@ const AuthorDashboardAfter = () => {
                     <div
                         key={book._id}
                         className={`
-        ${index > 1 ? "hidden" : ""} 
-        ${index < 5 ? "md:block" : "md:hidden"}
-      `}
+                            ${index > 1 ? "hidden" : ""} 
+                            ${index < 5 ? "md:block" : "md:hidden"}
+                        `}
                     >
                         {book.coverUrl ? (
                             <img
@@ -149,7 +223,6 @@ const AuthorDashboardAfter = () => {
                     </div>
                 ))}
             </div>
-
 
             <h3 className="mb-4 text-xl mt-10 font-nunito font-normal text-[#3F4D61]">Book Analytics</h3>
             <div className="overflow-x-auto">
@@ -244,27 +317,37 @@ const AuthorDashboardAfter = () => {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-600 mb-2">
-                                                First Name
+                                                First Name <span className="text-red-500">*</span>
                                             </label>
                                             <input
                                                 type="text"
                                                 name="author.firstName"
                                                 value={formData.author.firstName}
                                                 onChange={handleInputChange}
-                                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all"
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
+                                                    errors.firstName ? 'border-red-500' : 'border-gray-200'
+                                                }`}
                                             />
+                                            {errors.firstName && (
+                                                <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+                                            )}
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-600 mb-2">
-                                                Last Name
+                                                Last Name <span className="text-red-500">*</span>
                                             </label>
                                             <input
                                                 type="text"
                                                 name="author.lastName"
                                                 value={formData.author.lastName}
                                                 onChange={handleInputChange}
-                                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all"
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
+                                                    errors.lastName ? 'border-red-500' : 'border-gray-200'
+                                                }`}
                                             />
+                                            {errors.lastName && (
+                                                <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -275,15 +358,20 @@ const AuthorDashboardAfter = () => {
                                     <div className="space-y-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-600 mb-2">
-                                                Title
+                                                Title <span className="text-red-500">*</span>
                                             </label>
                                             <input
                                                 type="text"
                                                 name="title"
                                                 value={formData.title}
                                                 onChange={handleInputChange}
-                                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all"
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
+                                                    errors.title ? 'border-red-500' : 'border-gray-200'
+                                                }`}
                                             />
+                                            {errors.title && (
+                                                <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+                                            )}
                                         </div>
 
                                         <div>
@@ -301,21 +389,26 @@ const AuthorDashboardAfter = () => {
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-600 mb-2">
-                                                Description
+                                                Description <span className="text-red-500">*</span>
                                             </label>
                                             <textarea
                                                 name="description"
                                                 value={formData.description}
                                                 onChange={handleInputChange}
                                                 rows="4"
-                                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all resize-none"
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all resize-none ${
+                                                    errors.description ? 'border-red-500' : 'border-gray-200'
+                                                }`}
                                             />
+                                            {errors.description && (
+                                                <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+                                            )}
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-600 mb-2">
-                                                    Genre
+                                                    Genre <span className="text-red-500">*</span>
                                                 </label>
                                                 <select
                                                     name="genre"
@@ -334,7 +427,7 @@ const AuthorDashboardAfter = () => {
 
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-600 mb-2">
-                                                    Language
+                                                    Language <span className="text-red-500">*</span>
                                                 </label>
                                                 <select
                                                     name="language"
@@ -354,15 +447,20 @@ const AuthorDashboardAfter = () => {
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-600 mb-2">
-                                                Keywords <span className="text-gray-400 font-normal">(comma-separated)</span>
+                                                Keywords <span className="text-red-500">*</span> <span className="text-gray-400 font-normal">(comma-separated)</span>
                                             </label>
                                             <input
                                                 type="text"
                                                 value={formData.keywords.join(', ')}
                                                 onChange={handleKeywordsChange}
                                                 placeholder="thriller, mystery, adventure"
-                                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all"
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
+                                                    errors.keywords ? 'border-red-500' : 'border-gray-200'
+                                                }`}
                                             />
+                                            {errors.keywords && (
+                                                <p className="text-red-500 text-sm mt-1">{errors.keywords}</p>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -373,15 +471,22 @@ const AuthorDashboardAfter = () => {
                                     <div className="grid grid-cols-3 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-600 mb-2">
-                                                Price (Rs.)
+                                                Price (Rs.) <span className="text-red-500">*</span>
                                             </label>
                                             <input
                                                 type="number"
                                                 name="price"
                                                 value={formData.price}
                                                 onChange={handleInputChange}
-                                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all"
+                                                min="0"
+                                                step="0.01"
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
+                                                    errors.price ? 'border-red-500' : 'border-gray-200'
+                                                }`}
                                             />
+                                            {errors.price && (
+                                                <p className="text-red-500 text-sm mt-1">{errors.price}</p>
+                                            )}
                                         </div>
 
                                         <div>
@@ -395,13 +500,18 @@ const AuthorDashboardAfter = () => {
                                                 onChange={handleInputChange}
                                                 min="0"
                                                 max="100"
-                                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all"
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
+                                                    errors.discount ? 'border-red-500' : 'border-gray-200'
+                                                }`}
                                             />
+                                            {errors.discount && (
+                                                <p className="text-red-500 text-sm mt-1">{errors.discount}</p>
+                                            )}
                                         </div>
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-600 mb-2">
-                                                Format
+                                                Format <span className="text-red-500">*</span>
                                             </label>
                                             <select
                                                 name="fileFormat"
@@ -426,8 +536,13 @@ const AuthorDashboardAfter = () => {
                                             value={formData.isbn}
                                             onChange={handleInputChange}
                                             placeholder="978-3-16-148410-0"
-                                            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all"
+                                            className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
+                                                errors.isbn ? 'border-red-500' : 'border-gray-200'
+                                            }`}
                                         />
+                                        {errors.isbn && (
+                                            <p className="text-red-500 text-sm mt-1">{errors.isbn}</p>
+                                        )}
                                     </div>
                                 </div>
                             </div>
