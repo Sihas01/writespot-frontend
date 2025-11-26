@@ -31,6 +31,7 @@ const AuthorDashboard = () => {
     fetchBooks();
   }, []);
 
+
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;

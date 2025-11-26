@@ -7,29 +7,45 @@ function FileUpload({ label, name, onChange, accept, required = false, file }) {
   const [previewUrl, setPreviewUrl] = useState(null);
 
   const handleChange = (e) => {
-    setError(""); 
-    onChange(e); 
+    setError("");
+    onChange(e);
 
     const selectedFile = e.target.files[0];
     if (selectedFile) {
+      const fileType = selectedFile.type;
+      const extension = selectedFile.name.split(".").pop().toLowerCase();
+      const maxSize = 50 * 1024 * 1024;
+
+      if (selectedFile.size > maxSize) {
+        setError("File size must be less than 50 MB.");
+        setPreviewUrl(null);
+        onChange({ target: { name, files: [] } }); // reset
+        return;
+      }
+
       // Image preview
-      if (selectedFile.type.startsWith("image/")) {
+      if (fileType.startsWith("image/")) {
         const reader = new FileReader();
         reader.onloadend = () => setPreviewUrl(reader.result);
         reader.readAsDataURL(selectedFile);
-      } 
+      }
       // PDF preview
-      else if (selectedFile.type === "application/pdf") {
+      else if (extension === "pdf") {
         setPreviewUrl(URL.createObjectURL(selectedFile));
-      } else {
+      }
+      // Other docs (epub, mobi, docx) → no preview, just icon
+      else if (["epub", "mobi", "docx", "doc"].includes(extension)) {
         setPreviewUrl(null);
+      }
+      else {
+        setPreviewUrl(null);
+        setError("Unsupported file type");
       }
     } else {
       setPreviewUrl(null);
     }
   };
 
-  // Remove selected file
   const handleRemove = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -38,10 +54,9 @@ function FileUpload({ label, name, onChange, accept, required = false, file }) {
     onChange({ target: { name, files: [] } });
   };
 
-
   useEffect(() => {
     return () => {
-      if (previewUrl && file?.type === "application/pdf") {
+      if (previewUrl && file?.name?.split(".").pop().toLowerCase() === "pdf") {
         URL.revokeObjectURL(previewUrl);
       }
     };
@@ -66,26 +81,29 @@ function FileUpload({ label, name, onChange, accept, required = false, file }) {
         <label htmlFor={name} className="cursor-pointer block">
           {file ? (
             <div className="space-y-2">
-              {/* Preview */}
+              {/* Image preview */}
               {previewUrl && file.type.startsWith("image/") && (
                 <img src={previewUrl} alt="preview" className="mx-auto max-h-32" />
               )}
-              {previewUrl && file.type === "application/pdf" && (
+              {/* PDF preview */}
+              {previewUrl && file.name.endsWith(".pdf") && (
                 <iframe src={previewUrl} title="PDF Preview" width="100%" height="400" />
               )}
+              {/* Other doc icons */}
+              {!previewUrl && ["docx", "doc", "epub", "mobi"].includes(file.name.split(".").pop().toLowerCase()) && (
+                <div className="flex items-center justify-center gap-2 bg-gray-50 p-3 rounded">
+                  <FiUploadCloud className="w-5 h-5 text-blue-500" />
+                  <span className="text-sm text-gray-700 font-medium">{file.name}</span>
+                </div>
+              )}
 
-              {/* File info & remove */}
-              <div className="flex items-center justify-center gap-2 bg-gray-50 p-3 rounded">
-                <FiUploadCloud className="w-5 h-5 text-green-500" />
-                <span className="text-sm text-gray-700 font-medium">{file.name}</span>
-                <button
-                  type="button"
-                  onClick={handleRemove}
-                  className="text-red-500 hover:text-red-700 ml-2"
-                >
-                  <CiCircleRemove className="w-4 h-4" />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleRemove}
+                className="text-red-500 hover:text-red-700 mt-1"
+              >
+                <CiCircleRemove className="w-4 h-4 inline" /> Remove
+              </button>
 
               <p className="text-xs text-gray-500">Click to change file</p>
             </div>
