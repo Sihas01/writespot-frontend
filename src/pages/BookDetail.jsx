@@ -25,7 +25,7 @@ const BookDetail = () => {
 
   const ratingValue = Number(book?.averageRating ?? book?.rating ?? 0);
   const reviewCount = book?.reviewCount ?? book?.ratingsCount ?? 0;
-  const purchased = Boolean(book?.isPurchased || book?.purchased);
+  const purchased = Boolean(book?.isPurchased || book?.purchased || book?.isOwned);
   const resolvedBookId = book?._id || book?.id || routeBookId;
 
   useEffect(() => {
@@ -36,9 +36,12 @@ const BookDetail = () => {
 
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/books/${routeBookId}`, {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/books/${routeBookId}/reader`,
+          {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
+          }
+        );
 
         const data = res.data?.data || res.data?.book || res.data;
         setBook(data);
@@ -64,7 +67,7 @@ const BookDetail = () => {
   };
 
   const handleAddToCart = async () => {
-    setCartStatus({ type: "", message: "" });
+      setCartStatus({ type: "", message: "" });
 
     const result = await addToCart({
       bookId: resolvedBookId,
@@ -78,7 +81,7 @@ const BookDetail = () => {
   };
 
   const handleBuyNow = async () => {
-    setCartStatus({ type: "", message: "" });
+      setCartStatus({ type: "", message: "" });
 
     if (purchased) {
       setCartStatus({ type: "error", message: "You already own this book" });
@@ -172,8 +175,13 @@ const BookDetail = () => {
           <div className="flex-1 space-y-6">
             <div className="flex flex-wrap items-center gap-6">
               <div className="text-2xl md:text-3xl font-bold text-gray-800">
-                {book.price != null ? `LKR ${book.price}` : "Free"}
+                {!purchased && (book.price != null ? `LKR ${book.price}` : "Free")}
               </div>
+              {purchased && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#5A7C65] text-white text-sm font-semibold">
+                  Owned
+                </span>
+              )}
               <div className="flex items-center gap-2 text-sm text-gray-700">
                 <div className="flex">{renderStars()}</div>
                 <span className="font-semibold">{ratingValue.toFixed(1)}</span>
@@ -208,7 +216,9 @@ const BookDetail = () => {
               {purchased ? (
                 <button
                   type="button"
-                  className="flex-1 flex items-center justify-center gap-2 bg-[#5A7C65] text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90"
+                  disabled
+                  title="Reader coming soon"
+                  className="flex-1 flex items-center justify-center gap-2 bg-[#5A7C65] text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 disabled:opacity-80"
                 >
                   <FiPlay /> Read Now
                 </button>
@@ -217,7 +227,7 @@ const BookDetail = () => {
                   <button
                     type="button"
                     onClick={handleAddToCart}
-                    disabled={actionLoading}
+                    disabled={actionLoading || purchased}
                     className="flex-1 flex items-center justify-center gap-2 bg-[#5A7C65] text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 disabled:opacity-60"
                   >
                     <FiShoppingCart /> Add to cart
@@ -225,7 +235,7 @@ const BookDetail = () => {
                   <button
                     type="button"
                     onClick={handleBuyNow}
-                    disabled={actionLoading || buying}
+                    disabled={actionLoading || buying || purchased}
                     className="flex-1 flex items-center justify-center gap-2 bg-[#E9B013] text-gray-900 px-6 py-3 rounded-lg font-semibold hover:opacity-95 disabled:opacity-60"
                   >
                     {buying ? "Redirecting..." : "Buy Now"}
