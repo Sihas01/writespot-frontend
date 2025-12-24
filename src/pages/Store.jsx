@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { FiShoppingBag, FiShoppingCart } from "react-icons/fi";
 import { AiFillStar } from "react-icons/ai";
 import banner from "../assets/images/banner.png";
+import { useCart } from "../context/CartContext";
 
 const limit = 10;
 
@@ -24,6 +25,8 @@ const Store = () => {
     const [loading, setLoading] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState("");
+    const [cartStatus, setCartStatus] = useState({ type: "", message: "" });
+    const { addToCart, actionLoading } = useCart();
 
     const genres = ["Fiction", "Non-Fiction", "Poetry", "Biography", "Education"];
     const languages = ["Sinhala", "English", "Tamil"];
@@ -173,6 +176,23 @@ const Store = () => {
         if (loadingMore || !hasMore) return;
         const nextPage = page + 1;
         fetchBooks({ pageToLoad: nextPage, append: true });
+    };
+
+    const handleAddToCart = async (event, book) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setCartStatus({ type: "", message: "" });
+
+        const bookId = book._id || book.id;
+        const result = await addToCart({
+            bookId,
+            book,
+            purchased: Boolean(book?.purchased || book?.isPurchased),
+        });
+
+        if (result?.message) {
+            setCartStatus({ type: result.ok ? "success" : "error", message: result.message });
+        }
     };
 
     return (
@@ -328,6 +348,18 @@ const Store = () => {
                 </div>
             )}
 
+            {cartStatus.message && (
+                <div
+                    className={`mt-3 px-4 py-3 rounded-lg border font-nunito ${
+                        cartStatus.type === "success"
+                            ? "bg-green-50 text-green-700 border-green-200"
+                            : "bg-red-50 text-red-700 border-red-200"
+                    }`}
+                >
+                    {cartStatus.message}
+                </div>
+            )}
+
             {loading && books.length === 0 ? (
                 <p className="mt-6 text-gray-500 italic">Loading books...</p>
             ) : filteredBooks.length === 0 ? (
@@ -381,7 +413,9 @@ const Store = () => {
                                             </button>
                                             <button
                                                 type="button"
-                                                className="h-11 w-12 flex items-center justify-center rounded-lg bg-[#5A7C65] text-white hover:opacity-90"
+                                                onClick={(e) => handleAddToCart(e, book)}
+                                                disabled={actionLoading}
+                                                className="h-11 w-12 flex items-center justify-center rounded-lg bg-[#5A7C65] text-white hover:opacity-90 disabled:opacity-60"
                                             >
                                                 <FiShoppingCart className="w-5 h-5" />
                                             </button>
