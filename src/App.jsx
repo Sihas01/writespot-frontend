@@ -14,6 +14,7 @@ import AuthorIndexPage from "./pages/AuthorIndexPage";
 import ReaderPortal from "./pages/ReaderPortal";
 import ReaderHome from "./pages/ReaderHome";
 import Store from "./pages/Store";
+import BookDetail from "./pages/BookDetail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
@@ -58,6 +59,7 @@ function App() {
             <Route index element={<ReaderHome />} />
             <Route path="home" element={<ReaderHome />} />
             <Route path="store" element={<Store />} />
+            <Route path="store/:bookId" element={<BookDetail />} />
 
           </Route>
 
