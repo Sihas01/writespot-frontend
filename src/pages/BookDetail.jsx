@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import { FiHeart, FiShare2, FiShoppingCart, FiPlay } from "react-icons/fi";
@@ -11,7 +11,9 @@ const BookDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [cartStatus, setCartStatus] = useState({ type: "", message: "" });
+  const [buying, setBuying] = useState(false);
   const { addToCart, actionLoading } = useCart();
+  const navigate = useNavigate();
 
   const authorName = useMemo(() => {
     if (book?.author?.firstName || book?.author?.lastName) {
@@ -72,6 +74,32 @@ const BookDetail = () => {
 
     if (result?.message) {
       setCartStatus({ type: result.ok ? "success" : "error", message: result.message });
+    }
+  };
+
+  const handleBuyNow = async () => {
+    setCartStatus({ type: "", message: "" });
+
+    if (purchased) {
+      setCartStatus({ type: "error", message: "You already own this book" });
+      return;
+    }
+
+    try {
+      setBuying(true);
+      const result = await addToCart({
+        bookId: resolvedBookId,
+        book,
+        purchased,
+      });
+
+      if (result?.ok || result?.alreadyInCart) {
+        navigate("/reader/dashboard/checkout");
+      } else if (result?.message) {
+        setCartStatus({ type: result.ok ? "success" : "error", message: result.message });
+      }
+    } finally {
+      setBuying(false);
     }
   };
 
@@ -196,9 +224,11 @@ const BookDetail = () => {
                   </button>
                   <button
                     type="button"
-                    className="flex-1 flex items-center justify-center gap-2 bg-[#E9B013] text-gray-900 px-6 py-3 rounded-lg font-semibold hover:opacity-95"
+                    onClick={handleBuyNow}
+                    disabled={actionLoading || buying}
+                    className="flex-1 flex items-center justify-center gap-2 bg-[#E9B013] text-gray-900 px-6 py-3 rounded-lg font-semibold hover:opacity-95 disabled:opacity-60"
                   >
-                    Buy Now
+                    {buying ? "Redirecting..." : "Buy Now"}
                   </button>
                 </>
               )}

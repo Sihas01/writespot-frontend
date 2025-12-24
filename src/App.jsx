@@ -17,6 +17,9 @@ import Store from "./pages/Store";
 import BookDetail from "./pages/BookDetail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Checkout from "./pages/Checkout";
+import ThankYou from "./pages/ThankYou";
+import PaymentFailed from "./pages/PaymentFailed";
 
 
 function App() {
@@ -60,6 +63,9 @@ function App() {
             <Route path="home" element={<ReaderHome />} />
             <Route path="store" element={<Store />} />
             <Route path="store/:bookId" element={<BookDetail />} />
+            <Route path="checkout" element={<Checkout />} />
+            <Route path="thank-you" element={<ThankYou />} />
+            <Route path="payment-failed" element={<PaymentFailed />} />
 
           </Route>
 

@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import axios from "axios";
 import { addCartItem, fetchCartItems, removeCartItem } from "../services/cartService";
 
 const CartContext = createContext(null);
@@ -141,11 +142,80 @@ export const CartProvider = ({ children }) => {
   const selectAll = () => setSelectedIds(items.map((item) => item.bookId));
   const clearSelection = () => setSelectedIds([]);
 
-  const proceedToCheckout = () => {
-    setFeedback({
-      type: "info",
-      message: "Proceed to checkout coming soon. Selected items saved.",
+  const createAndSubmitForm = (params) => {
+    const actionUrl = params.sandbox
+      ? "https://sandbox.payhere.lk/pay/checkout"
+      : "https://www.payhere.lk/pay/checkout";
+
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = actionUrl;
+    form.style.display = "none";
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === undefined || value === null) return;
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = String(value);
+      form.appendChild(input);
     });
+
+    document.body.appendChild(form);
+    form.submit();
+  };
+
+  const proceedToCheckout = async () => {
+    setFeedback({ type: "", message: "" });
+
+    if (!selectedIds.length) {
+      setFeedback({ type: "error", message: "Select at least one book to checkout." });
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setFeedback({ type: "error", message: "Please log in to continue checkout." });
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/payments/checkout`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const { payhereParams, order } = res.data || {};
+      if (!payhereParams?.merchant_id || !payhereParams?.hash) {
+        throw new Error("Missing payment parameters from server.");
+      }
+
+      const origin = window.location.origin;
+      const resolvedOrderId = order?.orderId || payhereParams.order_id;
+
+      const params = {
+        ...payhereParams,
+        return_url:
+          payhereParams.return_url ||
+          `${origin}/reader/dashboard/thank-you?order_id=${resolvedOrderId || ""}`,
+        cancel_url: payhereParams.cancel_url || `${origin}/reader/dashboard/payment-failed`,
+      };
+
+      if (resolvedOrderId) {
+        sessionStorage.setItem("lastOrderId", resolvedOrderId);
+      }
+
+      createAndSubmitForm(params);
+    } catch (err) {
+      setFeedback({
+        type: "error",
+        message: err?.response?.data?.msg || err.message || "Unable to start payment.",
+      });
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const clearFeedback = () => setFeedback({ type: "", message: "" });
