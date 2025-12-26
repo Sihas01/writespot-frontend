@@ -69,14 +69,14 @@ const AuthorRevenue = () => {
     }
   };
 
-  const fetchTransactions = async (page = 1, append = false) => {
+  const fetchTransactions = async (page = 1) => {
     try {
-      if (append) setHistoryLoading(true);
+      setHistoryLoading(true);
       const res = await axios.get(`${apiBase}/api/revenue/history?page=${page}&limit=5`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const list = res.data?.data || [];
-      setTransactions((prev) => (append ? [...prev, ...list] : list));
+      setTransactions(list);
       if (res.data?.pagination) {
         setPagination({
           page: res.data.pagination.page,
@@ -93,7 +93,7 @@ const AuthorRevenue = () => {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      await Promise.all([fetchSummary(), fetchBooks(), fetchTransactions(1, false)]);
+      await Promise.all([fetchSummary(), fetchBooks(), fetchTransactions(1)]);
       setLoading(false);
     };
     load();
@@ -164,7 +164,7 @@ const AuthorRevenue = () => {
       );
       showToast("Withdrawal requested successfully");
       closeWithdraw();
-      await Promise.all([fetchSummary(), fetchTransactions(1, false)]);
+      await Promise.all([fetchSummary(), fetchTransactions(1)]);
     } catch (err) {
       showToast(err?.response?.data?.message || "Failed to submit withdrawal", "error");
     } finally {
@@ -172,57 +172,69 @@ const AuthorRevenue = () => {
     }
   };
 
-  const renderBookRow = (book) => (
-    <tr key={book.bookId} className="border-b last:border-b-0">
-      <td className="px-4 py-3">
-        {book.coverUrl ? (
-          <img
-            src={book.coverUrl}
-            alt={book.title}
-            className="w-12 h-16 object-cover rounded"
-          />
-        ) : (
-          <div className="w-12 h-16 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">
-            No Cover
-          </div>
-        )}
-      </td>
-      <td className="px-4 py-3">
-        <div className="font-semibold text-gray-800">{book.title}</div>
-        {book.author && (
-          <div className="text-sm text-gray-500">{book.author}</div>
-        )}
-      </td>
-      <td className="px-4 py-3 text-center text-gray-700">{book.totalQuantity || 0}</td>
-      <td className="px-4 py-3 text-right text-gray-800 font-semibold">
-        {formatCurrency(book.totalEarnings)}
-      </td>
-    </tr>
-  );
+  const COVER_BASE = "https://writespot-uploads.s3.us-east-1.amazonaws.com";
 
-  const renderTransaction = (tx) => {
-    const isCredit = tx.type === "CREDIT";
+  const normalizeCover = (src) => {
+    if (!src) return "";
+    if (src.startsWith("http")) return src;
+    const cleaned = src.replace(/^\/+/, "");
+    return `${COVER_BASE}/${cleaned}`;
+  };
+
+  const getCoverSrc = (book) =>
+    normalizeCover(
+      book?.coverUrl ||
+        book?.coverImage ||
+        book?.cover ||
+        book?.book?.coverUrl ||
+        book?.book?.coverImage ||
+        book?.book?.cover ||
+        book?.bookDetails?.coverUrl ||
+        book?.bookDetails?.coverImage ||
+        book?.bookDetails?.cover ||
+        book?.bookInfo?.coverUrl ||
+        book?.bookInfo?.coverImage ||
+        book?.bookInfo?.cover ||
+        ""
+    );
+
+  const renderBookRow = (book) => {
+    const coverSrc = getCoverSrc(book);
     return (
-      <div
-        key={tx._id}
-        className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex justify-between items-start shadow-sm"
-      >
-        <div>
-          <p className="text-gray-800 font-semibold">{tx.description || "Transaction"}</p>
-          <p className="text-sm text-gray-500">
-            {new Date(tx.createdAt).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </p>
-        </div>
-        <div className={`font-semibold ${isCredit ? "text-green-600" : "text-red-500"}`}>
-          {isCredit ? "+" : "-"} {formatCurrency(tx.amount)}
-        </div>
-      </div>
+      <tr key={book.bookId} className="border-b border-gray-200/60 last:border-b-0">
+        <td className="px-4 py-3">
+          {coverSrc ? (
+            <img
+              src={coverSrc}
+              alt={book.title}
+              className="w-12 h-16 object-cover rounded"
+            />
+          ) : (
+            <div className="w-12 h-16 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">
+              📕
+            </div>
+          )}
+        </td>
+        <td className="px-4 py-3">
+          <div className="font-semibold text-gray-800">{book.title}</div>
+          {book.author && (
+            <div className="text-sm text-gray-500">{book.author}</div>
+          )}
+        </td>
+        <td className="px-4 py-3 text-center text-gray-700">{book.totalQuantity || 0}</td>
+        <td className="px-4 py-3 text-right text-gray-800 font-semibold">
+          {formatCurrency(book.totalEarnings)}
+        </td>
+      </tr>
     );
   };
+
+  const formatDate = (date) =>
+    new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
 
   if (loading) {
     return (
@@ -310,24 +322,110 @@ const AuthorRevenue = () => {
       </section>
 
       <section className="space-y-4">
-        <h3 className="text-xl font-semibold text-gray-800 font-nunito">Transaction History</h3>
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 space-y-3">
-          {transactions.length === 0 && (
-            <p className="text-gray-500 text-center py-4">No transactions yet.</p>
-          )}
-          {transactions.map(renderTransaction)}
-        </div>
-        {pagination.page < pagination.totalPages && (
-          <div className="text-center">
-            <button
-              onClick={() => fetchTransactions(pagination.page + 1, true)}
-              disabled={historyLoading}
-              className="text-[#074B03] font-medium hover:underline disabled:opacity-60"
-            >
-              {historyLoading ? "Loading..." : "View More"}
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <h3 className="text-xl font-semibold text-gray-800 font-nunito">Transaction History</h3>
+          <div className="flex gap-2">
+            <button className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
+              Sort by
             </button>
           </div>
-        )}
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-gray-50 text-xs font-medium text-gray-500 uppercase">
+                <tr>
+                  <th className="px-4 py-3 text-left">Transaction</th>
+                  <th className="px-4 py-3 text-left">Date</th>
+                  <th className="px-4 py-3 text-right">Amount</th>
+                  <th className="px-4 py-3 text-left">Status</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm text-gray-700">
+                {transactions.length === 0 && (
+                  <tr>
+                    <td colSpan="5" className="px-4 py-6 text-center text-gray-500">
+                      No transactions yet.
+                    </td>
+                  </tr>
+                )}
+                {transactions.map((tx) => {
+                  const isCredit = tx.type === "CREDIT";
+                  const status = tx.status || "Completed";
+                  const amountText = `${isCredit ? "+" : "-"} ${formatCurrency(tx.amount)}`;
+                  return (
+                    <tr
+                      key={tx._id}
+                      className="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-4 py-3">
+                        <p className="font-semibold text-gray-800">{tx.description || "Transaction"}</p>
+                        {tx.relatedBookId && (
+                          <p className="text-xs text-gray-500 mt-0.5">Book ID: {tx.relatedBookId}</p>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{formatDate(tx.createdAt)}</td>
+                      <td className={`px-4 py-3 text-right font-semibold ${isCredit ? "text-green-600" : "text-red-500"}`}>
+                        {amountText}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center rounded-full bg-green-100 text-green-700 px-3 py-1 text-xs font-semibold">
+                          {status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button className="text-gray-500 hover:text-gray-700">⋯</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {pagination.totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 text-sm text-gray-700">
+              <button
+                onClick={() => pagination.page > 1 && fetchTransactions(pagination.page - 1)}
+                disabled={pagination.page === 1 || historyLoading}
+                className="px-3 py-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50"
+              >
+                Previous
+              </button>
+              <div className="flex items-center gap-2">
+                {Array.from({ length: pagination.totalPages }).map((_, idx) => {
+                  const pageNum = idx + 1;
+                  const active = pageNum === pagination.page;
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => fetchTransactions(pageNum)}
+                      disabled={historyLoading}
+                      className={`w-9 h-9 rounded-lg border text-sm ${
+                        active
+                          ? "border-[#074B03] text-white bg-[#074B03]"
+                          : "border-gray-200 text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                onClick={() =>
+                  pagination.page < pagination.totalPages && fetchTransactions(pagination.page + 1)
+                }
+                disabled={pagination.page === pagination.totalPages || historyLoading}
+                className="px-3 py-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </div>
       </section>
 
       {modalOpen && (
