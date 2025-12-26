@@ -148,11 +148,12 @@ const AuthorRevenue = () => {
     e.preventDefault();
     if (!validateWithdraw()) return;
     setWithdrawLoading(true);
+    const amountNumber = Number(withdrawForm.amount);
     try {
-      await axios.post(
+      const res = await axios.post(
         `${apiBase}/api/revenue/withdraw`,
         {
-          amount: Number(withdrawForm.amount),
+          amount: amountNumber,
           bankDetails: {
             accountNumber: withdrawForm.accountNumber,
             bankName: withdrawForm.bankName,
@@ -162,11 +163,29 @@ const AuthorRevenue = () => {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      showToast("Withdrawal requested successfully");
+
+      const newBalance =
+        res?.data?.currentBalance !== undefined
+          ? res.data.currentBalance
+          : (summary?.currentBalance || 0) - amountNumber;
+      const newTotalWithdrawn =
+        res?.data?.totalWithdrawn !== undefined
+          ? res.data.totalWithdrawn
+          : (summary?.totalWithdrawn || 0) + amountNumber;
+
+      setSummary((prev) => ({
+        ...prev,
+        currentBalance: newBalance,
+        totalWithdrawn: newTotalWithdrawn,
+      }));
+
+      showToast("Withdrawal Successful");
       closeWithdraw();
-      await Promise.all([fetchSummary(), fetchTransactions(1)]);
+      fetchTransactions(1);
     } catch (err) {
-      showToast(err?.response?.data?.message || "Failed to submit withdrawal", "error");
+      const message = err?.response?.data?.message || "Failed to submit withdrawal";
+      showToast(message, "error");
+      alert(message);
     } finally {
       setWithdrawLoading(false);
     }
