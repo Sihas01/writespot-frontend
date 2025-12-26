@@ -1,6 +1,7 @@
 import AuthorDashboard from "./pages/AuthorDashboard"
 import AuthorHomePage from "./pages/AuthorHomePage"
 import LandingPage from "./pages/LandingPage"
+import AuthorRevenue from "./pages/AuthorRevenue"
 
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
@@ -53,6 +54,7 @@ function App() {
             <Route path="home" element={<AuthorIndexPage />} />
 
             <Route path="publications" element={<PublishingPage />} />
+            <Route path="revenue" element={<AuthorRevenue />} />
           </Route>
 
           {/* Reader portal */}
