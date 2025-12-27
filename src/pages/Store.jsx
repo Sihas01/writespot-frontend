@@ -1,9 +1,10 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { FiShoppingBag, FiShoppingCart } from "react-icons/fi";
+import { Link, useNavigate } from "react-router-dom";
+import { FiShoppingBag, FiShoppingCart, FiPlay } from "react-icons/fi";
 import { AiFillStar } from "react-icons/ai";
 import banner from "../assets/images/banner.png";
+import { useCart } from "../context/CartContext";
 
 const limit = 10;
 
@@ -24,6 +25,11 @@ const Store = () => {
     const [loading, setLoading] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState("");
+    const [cartStatus, setCartStatus] = useState({ type: "", message: "" });
+    const [buyNowId, setBuyNowId] = useState("");
+    const [ownedIds, setOwnedIds] = useState(new Set());
+    const { addToCart, actionLoading } = useCart();
+    const navigate = useNavigate();
 
     const genres = ["Fiction", "Non-Fiction", "Poetry", "Biography", "Education"];
     const languages = ["Sinhala", "English", "Tamil"];
@@ -65,6 +71,31 @@ const Store = () => {
         fetchBooks({ pageToLoad: 1, append: false });
         setPage(1);
     }, [filters]);
+
+    useEffect(() => {
+        const fetchOwnedBooks = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                setOwnedIds(new Set());
+                return;
+            }
+
+            try {
+                const res = await axios.get(`${import.meta.env.VITE_API_URL}/books/library`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                const list = Array.isArray(res.data)
+                    ? res.data
+                    : res.data?.data || res.data?.books || [];
+                const ids = new Set(list.map((b) => b?._id || b?.id || b?.bookId).filter(Boolean));
+                setOwnedIds(ids);
+            } catch (err) {
+                console.error("Failed to load owned books", err);
+            }
+        };
+
+        fetchOwnedBooks();
+    }, []);
 
     useEffect(() => {
         if (!searchQuery.trim()) {
@@ -173,6 +204,66 @@ const Store = () => {
         if (loadingMore || !hasMore) return;
         const nextPage = page + 1;
         fetchBooks({ pageToLoad: nextPage, append: true });
+    };
+
+    const handleAddToCart = async (event, book) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setCartStatus({ type: "", message: "" });
+
+        const bookId = book._id || book.id;
+        const result = await addToCart({
+            bookId,
+            book,
+            purchased: Boolean(book?.purchased || book?.isPurchased),
+        });
+
+        if (result?.message) {
+            setCartStatus({ type: result.ok ? "success" : "error", message: result.message });
+        }
+    };
+
+    const handleBuyNow = async (event, book) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setCartStatus({ type: "", message: "" });
+
+        const bookId = book._id || book.id;
+        if (!bookId) return;
+
+        if (book?.purchased || book?.isPurchased) {
+            setCartStatus({ type: "error", message: "You already own this book" });
+            return;
+        }
+
+        try {
+            setBuyNowId(bookId);
+            const result = await addToCart({
+                bookId,
+                book,
+                purchased: false,
+            });
+
+            if (result?.ok || result?.alreadyInCart) {
+                navigate("/reader/dashboard/checkout");
+            } else if (result?.message) {
+                setCartStatus({
+                    type: result.ok ? "success" : "error",
+                    message: result.message,
+                });
+            }
+        } finally {
+            setBuyNowId("");
+        }
+    };
+
+    const handleReadNow = (event, book) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const bookId = book?._id || book?.id;
+        if (bookId) {
+            navigate(`/reader/dashboard/store/${bookId}`);
+        }
     };
 
     return (
@@ -328,6 +419,18 @@ const Store = () => {
                 </div>
             )}
 
+            {cartStatus.message && (
+                <div
+                    className={`mt-3 px-4 py-3 rounded-lg border font-nunito ${
+                        cartStatus.type === "success"
+                            ? "bg-green-50 text-green-700 border-green-200"
+                            : "bg-red-50 text-red-700 border-red-200"
+                    }`}
+                >
+                    {cartStatus.message}
+                </div>
+            )}
+
             {loading && books.length === 0 ? (
                 <p className="mt-6 text-gray-500 italic">Loading books...</p>
             ) : filteredBooks.length === 0 ? (
@@ -339,26 +442,41 @@ const Store = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
                         {filteredBooks.map((book) => {
                             const bookId = book._id || book.id;
+                            const purchased = Boolean(
+                                book?.purchased || book?.isPurchased || ownedIds.has(bookId)
+                            );
+                            const buyNowDisabled =
+                                actionLoading || buyNowId === bookId || purchased;
+
                             return (
                                 <Link
                                     key={bookId}
                                     to={bookId ? `/reader/dashboard/store/${bookId}` : "#"}
                                     className="p-4 rounded-xl flex flex-col shadow-sm bg-white hover:shadow-md transition-shadow"
                                 >
-                                    <img
-                                        src={book.coverUrl}
-                                        alt={book.title}
-                                        className="w-full max-h-72 object-contain rounded-lg"
-                                    />
+                                    <div className="relative">
+                                        <img
+                                            src={book.coverUrl}
+                                            alt={book.title}
+                                            className="w-full max-h-72 object-contain rounded-lg"
+                                        />
+                                        {purchased && (
+                                            <span className="absolute top-2 right-2 bg-[#5A7C65] text-white text-xs font-semibold px-2 py-1 rounded-md">
+                                                Owned
+                                            </span>
+                                        )}
+                                    </div>
 
                                     <div className="flex flex-col mt-4 gap-2">
                                         <div className="flex items-center justify-between">
                                             <p className="text-[16px] font-semibold font-nunito leading-snug">
                                                 {book.title}
                                             </p>
-                                            <span className="text-sm font-semibold text-[#2E8B57]">
-                                                {book.price ? `LKR ${book.price}` : "Free"}
-                                            </span>
+                                            {!purchased && (
+                                                <span className="text-sm font-semibold text-[#2E8B57]">
+                                                    {book.price ? `LKR ${book.price}` : "Free"}
+                                                </span>
+                                            )}
                                         </div>
 
                                         <p className="font-light text-[14px] font-nunito text-gray-700">
@@ -372,19 +490,38 @@ const Store = () => {
                                         </div>
 
                                         <div className="flex items-center gap-3 mt-2">
-                                            <button
-                                                type="button"
-                                                className="flex-1 flex items-center justify-center gap-2 border border-gray-200 rounded-lg px-3 py-2.5 text-[14px] font-semibold text-gray-800 hover:bg-gray-50"
-                                            >
-                                                <FiShoppingBag className="w-4 h-4" />
-                                                Buy Now
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="h-11 w-12 flex items-center justify-center rounded-lg bg-[#5A7C65] text-white hover:opacity-90"
-                                            >
-                                                <FiShoppingCart className="w-5 h-5" />
-                                            </button>
+                                            {purchased ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => handleReadNow(e, book)}
+                                                    disabled
+                                                    title="Reader coming soon"
+                                                    className="flex-1 flex items-center justify-center gap-2 bg-[#5A7C65] text-white px-3 py-2.5 rounded-lg text-[14px] font-semibold hover:opacity-90 disabled:opacity-80"
+                                                >
+                                                    <FiPlay className="w-4 h-4" />
+                                                    Read Now
+                                                </button>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => handleBuyNow(e, book)}
+                                                        disabled={buyNowDisabled}
+                                                        className="flex-1 flex items-center justify-center gap-2 border border-gray-200 rounded-lg px-3 py-2.5 text-[14px] font-semibold text-gray-800 hover:bg-gray-50 disabled:opacity-60"
+                                                    >
+                                                        <FiShoppingBag className="w-4 h-4" />
+                                                        Buy Now
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => handleAddToCart(e, book)}
+                                                        disabled={actionLoading || purchased}
+                                                        className="h-11 w-12 flex items-center justify-center rounded-lg bg-[#5A7C65] text-white hover:opacity-90 disabled:opacity-60"
+                                                    >
+                                                        <FiShoppingCart className="w-5 h-5" />
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 </Link>

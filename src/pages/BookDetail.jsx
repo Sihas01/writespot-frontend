@@ -1,14 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import { FiHeart, FiShare2, FiShoppingCart, FiPlay } from "react-icons/fi";
+import { useCart } from "../context/CartContext";
 
 const BookDetail = () => {
-  const { bookId } = useParams();
+  const { bookId: routeBookId } = useParams();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [cartStatus, setCartStatus] = useState({ type: "", message: "" });
+  const [buying, setBuying] = useState(false);
+  const { addToCart, actionLoading } = useCart();
+  const navigate = useNavigate();
 
   const authorName = useMemo(() => {
     if (book?.author?.firstName || book?.author?.lastName) {
@@ -20,19 +25,23 @@ const BookDetail = () => {
 
   const ratingValue = Number(book?.averageRating ?? book?.rating ?? 0);
   const reviewCount = book?.reviewCount ?? book?.ratingsCount ?? 0;
-  const purchased = Boolean(book?.isPurchased || book?.purchased);
+  const purchased = Boolean(book?.isPurchased || book?.purchased || book?.isOwned);
+  const resolvedBookId = book?._id || book?.id || routeBookId;
 
   useEffect(() => {
     const fetchBook = async () => {
-      if (!bookId) return;
+      if (!routeBookId) return;
       setLoading(true);
       setError("");
 
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/books/${bookId}`, {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/books/${routeBookId}/reader`,
+          {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
+          }
+        );
 
         const data = res.data?.data || res.data?.book || res.data;
         setBook(data);
@@ -44,7 +53,7 @@ const BookDetail = () => {
     };
 
     fetchBook();
-  }, [bookId]);
+  }, [routeBookId]);
 
   const renderStars = () => {
     const rounded = Math.round(ratingValue);
@@ -55,6 +64,46 @@ const BookDetail = () => {
         <AiOutlineStar key={idx} className="text-yellow-500" />
       )
     );
+  };
+
+  const handleAddToCart = async () => {
+      setCartStatus({ type: "", message: "" });
+
+    const result = await addToCart({
+      bookId: resolvedBookId,
+      book,
+      purchased,
+    });
+
+    if (result?.message) {
+      setCartStatus({ type: result.ok ? "success" : "error", message: result.message });
+    }
+  };
+
+  const handleBuyNow = async () => {
+      setCartStatus({ type: "", message: "" });
+
+    if (purchased) {
+      setCartStatus({ type: "error", message: "You already own this book" });
+      return;
+    }
+
+    try {
+      setBuying(true);
+      const result = await addToCart({
+        bookId: resolvedBookId,
+        book,
+        purchased,
+      });
+
+      if (result?.ok || result?.alreadyInCart) {
+        navigate("/reader/dashboard/checkout");
+      } else if (result?.message) {
+        setCartStatus({ type: result.ok ? "success" : "error", message: result.message });
+      }
+    } finally {
+      setBuying(false);
+    }
   };
 
   if (loading) {
@@ -126,8 +175,13 @@ const BookDetail = () => {
           <div className="flex-1 space-y-6">
             <div className="flex flex-wrap items-center gap-6">
               <div className="text-2xl md:text-3xl font-bold text-gray-800">
-                {book.price != null ? `LKR ${book.price}` : "Free"}
+                {!purchased && (book.price != null ? `LKR ${book.price}` : "Free")}
               </div>
+              {purchased && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#5A7C65] text-white text-sm font-semibold">
+                  Owned
+                </span>
+              )}
               <div className="flex items-center gap-2 text-sm text-gray-700">
                 <div className="flex">{renderStars()}</div>
                 <span className="font-semibold">{ratingValue.toFixed(1)}</span>
@@ -162,7 +216,9 @@ const BookDetail = () => {
               {purchased ? (
                 <button
                   type="button"
-                  className="flex-1 flex items-center justify-center gap-2 bg-[#5A7C65] text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90"
+                  disabled
+                  title="Reader coming soon"
+                  className="flex-1 flex items-center justify-center gap-2 bg-[#5A7C65] text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 disabled:opacity-80"
                 >
                   <FiPlay /> Read Now
                 </button>
@@ -170,19 +226,35 @@ const BookDetail = () => {
                 <>
                   <button
                     type="button"
-                    className="flex-1 flex items-center justify-center gap-2 bg-[#5A7C65] text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90"
+                    onClick={handleAddToCart}
+                    disabled={actionLoading || purchased}
+                    className="flex-1 flex items-center justify-center gap-2 bg-[#5A7C65] text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 disabled:opacity-60"
                   >
                     <FiShoppingCart /> Add to cart
                   </button>
                   <button
                     type="button"
-                    className="flex-1 flex items-center justify-center gap-2 bg-[#E9B013] text-gray-900 px-6 py-3 rounded-lg font-semibold hover:opacity-95"
+                    onClick={handleBuyNow}
+                    disabled={actionLoading || buying || purchased}
+                    className="flex-1 flex items-center justify-center gap-2 bg-[#E9B013] text-gray-900 px-6 py-3 rounded-lg font-semibold hover:opacity-95 disabled:opacity-60"
                   >
-                    Buy Now
+                    {buying ? "Redirecting..." : "Buy Now"}
                   </button>
                 </>
               )}
             </div>
+
+            {cartStatus.message && (
+              <div
+                className={`mt-4 px-4 py-3 rounded-lg border font-nunito ${
+                  cartStatus.type === "success"
+                    ? "bg-green-50 text-green-700 border-green-200"
+                    : "bg-red-50 text-red-700 border-red-200"
+                }`}
+              >
+                {cartStatus.message}
+              </div>
+            )}
 
             <div className="space-y-2">
               <h4 className="text-base font-semibold text-gray-800 font-nunito">Description</h4>

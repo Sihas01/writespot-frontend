@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Header from '../components/ReaderPortal/Header';
 import Navigation from '../components/ReaderPortal/Navigation';
+import CartPanel from "../components/ReaderPortal/CartPanel";
+import { CartProvider } from "../context/CartContext";
 
 
 
@@ -10,7 +12,7 @@ const ReaderPortal = () => {
     const [isNavSticky, setIsNavSticky] = useState(false);
     const [lastScrollY, setLastScrollY] = useState(0);
     const user = JSON.parse(localStorage.getItem('user'));
-    const userName = user?.name;
+    const userName = user?.name || "Reader";
 
 
 
@@ -56,18 +58,22 @@ const ReaderPortal = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <Header username={userName.split(" ")[0]} isVisible={showHeader} />
-            <Navigation
-                activeTab={currentTab}
-                onTabChange={handleTabChange}
-                isSticky={isNavSticky}
-            />
+        <CartProvider>
+            <div className="min-h-screen bg-gray-50">
+                <Header username={(userName || "").split(" ")[0]} isVisible={showHeader} />
+                <Navigation
+                    activeTab={currentTab}
+                    onTabChange={handleTabChange}
+                    isSticky={isNavSticky}
+                />
 
-            <main className={`px-4 lg:px-32 mx-auto py-6 ${isNavSticky ? 'mt-16' : ''}`}>
-                <Outlet />
-            </main>
-        </div>
+                <main className={`px-4 lg:px-32 mx-auto py-6 ${isNavSticky ? 'mt-16' : ''}`}>
+                    <Outlet />
+                </main>
+
+                <CartPanel />
+            </div>
+        </CartProvider>
     );
 };
 
