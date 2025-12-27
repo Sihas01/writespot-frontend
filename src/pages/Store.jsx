@@ -1,5 +1,8 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { FiShoppingBag, FiShoppingCart } from "react-icons/fi";
+import { AiFillStar } from "react-icons/ai";
 import banner from "../assets/images/banner.png";
 
 const limit = 10;
@@ -334,39 +337,59 @@ const Store = () => {
             ) : (
                 <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-                        {filteredBooks.map((book) => (
-                            <div
-                                key={book._id || book.id}
-                                className="p-3 rounded-md flex flex-col shadow-sm bg-white"
-                            >
-                                <img
-                                    src={book.coverUrl}
-                                    alt={book.title}
-                                    className="w-full max-h-60 object-contain rounded-md"
-                                />
+                        {filteredBooks.map((book) => {
+                            const bookId = book._id || book.id;
+                            return (
+                                <Link
+                                    key={bookId}
+                                    to={bookId ? `/reader/dashboard/store/${bookId}` : "#"}
+                                    className="p-4 rounded-xl flex flex-col shadow-sm bg-white hover:shadow-md transition-shadow"
+                                >
+                                    <img
+                                        src={book.coverUrl}
+                                        alt={book.title}
+                                        className="w-full max-h-72 object-contain rounded-lg"
+                                    />
 
-                                <div className="px-2 flex flex-col mt-3">
-                                    <div className="flex items-center justify-between">
-                                        <p className="text-[15px] font-medium font-nunito">
-                                            {book.title}
+                                    <div className="flex flex-col mt-4 gap-2">
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-[16px] font-semibold font-nunito leading-snug">
+                                                {book.title}
+                                            </p>
+                                            <span className="text-sm font-semibold text-[#2E8B57]">
+                                                {book.price ? `LKR ${book.price}` : "Free"}
+                                            </span>
+                                        </div>
+
+                                        <p className="font-light text-[14px] font-nunito text-gray-700">
+                                            {book.author?.firstName} {book.author?.lastName}
                                         </p>
-                                        <h3 className="text-sm font-semibold">
-                                            {book.price ?? "Free"}
-                                        </h3>
+
+                                        <div className="flex gap-1 text-yellow-500 text-lg leading-none">
+                                            {Array.from({ length: 5 }).map((_, idx) => (
+                                                <AiFillStar key={idx} />
+                                            ))}
+                                        </div>
+
+                                        <div className="flex items-center gap-3 mt-2">
+                                            <button
+                                                type="button"
+                                                className="flex-1 flex items-center justify-center gap-2 border border-gray-200 rounded-lg px-3 py-2.5 text-[14px] font-semibold text-gray-800 hover:bg-gray-50"
+                                            >
+                                                <FiShoppingBag className="w-4 h-4" />
+                                                Buy Now
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="h-11 w-12 flex items-center justify-center rounded-lg bg-[#5A7C65] text-white hover:opacity-90"
+                                            >
+                                                <FiShoppingCart className="w-5 h-5" />
+                                            </button>
+                                        </div>
                                     </div>
-
-                                    <p className="font-light text-[14px] font-nunito">
-                                        {book.author?.firstName} {book.author?.lastName}
-                                    </p>
-
-                                    <p className="text-yellow-500 text-sm mt-2">⭐⭐⭐⭐⭐</p>
-
-                                    <div className="mt-4 bg-[#5A7C65] py-2 text-center text-white rounded-lg cursor-pointer">
-                                        Add To Library
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                                </Link>
+                            );
+                        })}
                     </div>
 
                     <div className="flex justify-center mt-8">
