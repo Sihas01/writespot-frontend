@@ -280,7 +280,7 @@ const Store = () => {
                             onFocus={() => setIsFocused(true)}
                             onBlur={() => setTimeout(() => setIsFocused(false), 150)}
                             placeholder="Search books or authors..."
-                            className="w-full border px-4 py-2 rounded-lg shadow-sm focus:outline-none"
+                            className="w-full border border-gray-300/50 px-4 py-2 rounded-lg shadow-sm focus:outline-none"
                         />
 
                         {isFocused && (suggestions.length > 0 || recentSearches.length > 0) && (
@@ -309,19 +309,19 @@ const Store = () => {
                     <button
                         type="button"
                         onClick={() => setIsFilterOpen((prev) => !prev)}
-                        className="ml-4 whitespace-nowrap border px-4 py-2 rounded-lg shadow-sm bg-white hover:bg-gray-50 font-nunito"
+                        className="ml-4 whitespace-nowrap border border-gray-300/50 px-4 py-2 rounded-lg shadow-sm bg-white hover:bg-gray-50 font-nunito"
                     >
                         Filter
                     </button>
                 </div>
 
                 {isFilterOpen && (
-                    <div className="border rounded-lg p-4 shadow-sm bg-white">
+                    <div className="border border-gray-300/40 rounded-lg p-4 shadow-sm bg-white">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="flex flex-col gap-2">
                                 <label className="text-sm font-medium font-nunito">Genre</label>
                                 <select
-                                    className="border rounded-md px-3 py-2 font-nunito"
+                                    className="border border-gray-300/50 rounded-md px-3 py-2 font-nunito"
                                     value={pendingFilters.genre}
                                     onChange={(e) =>
                                         setPendingFilters((prev) => ({
@@ -342,7 +342,7 @@ const Store = () => {
                             <div className="flex flex-col gap-2">
                                 <label className="text-sm font-medium font-nunito">Language</label>
                                 <select
-                                    className="border rounded-md px-3 py-2 font-nunito"
+                                    className="border border-gray-300/50 rounded-md px-3 py-2 font-nunito"
                                     value={pendingFilters.language}
                                     onChange={(e) =>
                                         setPendingFilters((prev) => ({
@@ -401,7 +401,7 @@ const Store = () => {
                             <button
                                 type="button"
                                 onClick={handleFilterClear}
-                                className="border px-4 py-2 rounded-md font-nunito hover:bg-gray-50"
+                                className="border border-gray-300/50 px-4 py-2 rounded-md font-nunito hover:bg-gray-50"
                             >
                                 Clear
                             </button>
