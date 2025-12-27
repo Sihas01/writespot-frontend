@@ -1,6 +1,7 @@
 import AuthorDashboard from "./pages/AuthorDashboard"
 import AuthorHomePage from "./pages/AuthorHomePage"
 import LandingPage from "./pages/LandingPage"
+import AuthorRevenue from "./pages/AuthorRevenue"
 
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
@@ -14,8 +15,13 @@ import AuthorIndexPage from "./pages/AuthorIndexPage";
 import ReaderPortal from "./pages/ReaderPortal";
 import ReaderHome from "./pages/ReaderHome";
 import Store from "./pages/Store";
+import BookDetail from "./pages/BookDetail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Checkout from "./pages/Checkout";
+import ThankYou from "./pages/ThankYou";
+import PaymentFailed from "./pages/PaymentFailed";
+import Library from "./pages/Library";
 
 
 function App() {
@@ -48,6 +54,7 @@ function App() {
             <Route path="home" element={<AuthorIndexPage />} />
 
             <Route path="publications" element={<PublishingPage />} />
+            <Route path="revenue" element={<AuthorRevenue />} />
           </Route>
 
           {/* Reader portal */}
@@ -58,6 +65,11 @@ function App() {
             <Route index element={<ReaderHome />} />
             <Route path="home" element={<ReaderHome />} />
             <Route path="store" element={<Store />} />
+            <Route path="store/:bookId" element={<BookDetail />} />
+            <Route path="library" element={<Library />} />
+            <Route path="checkout" element={<Checkout />} />
+            <Route path="thank-you" element={<ThankYou />} />
+            <Route path="payment-failed" element={<PaymentFailed />} />
 
           </Route>
 

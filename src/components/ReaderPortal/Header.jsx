@@ -1,11 +1,14 @@
 import { IoSearchOutline } from "react-icons/io5";
 import { AiOutlineGlobal } from "react-icons/ai";
 import { RiUserLine } from "react-icons/ri";
+import { FiShoppingCart } from "react-icons/fi";
 import { useState, useEffect, useRef } from "react";
+import { useCart } from "../../context/CartContext";
 
 const Header = ({ username, isVisible }) => {
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
+    const { cartCount, openCartPanel } = useCart();
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -45,6 +48,19 @@ const Header = ({ username, isVisible }) => {
 
                     <button className="p-2 hover:bg-gray-100 rounded-full transition">
                         <AiOutlineGlobal className="w-5 h-5 text-gray-600" />
+                    </button>
+
+                    <button
+                        className="relative p-2 hover:bg-gray-100 rounded-full transition"
+                        onClick={openCartPanel}
+                        aria-label="Open cart"
+                    >
+                        <FiShoppingCart className="w-5 h-5 text-gray-600" />
+                        {cartCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-[#5A7C65] text-white text-[10px] leading-none px-1.5 py-1 rounded-full">
+                                {cartCount}
+                            </span>
+                        )}
                     </button>
 
                     <div className="relative" ref={dropdownRef}>

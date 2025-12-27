@@ -12,6 +12,7 @@ function BookDetailsStep({ formData, onChange, onNext }) {
   };
 
   const languageOptions = [
+    { value: 'sm', label: 'Sinhala' },
     { value: 'en', label: 'English' },
     { value: 'es', label: 'Spanish' },
     { value: 'fr', label: 'French' },

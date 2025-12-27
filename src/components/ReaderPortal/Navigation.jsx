@@ -7,6 +7,7 @@ const Navigation = ({ activeTab, onTabChange, isSticky }) => {
   const navItems = [
     { id: 'home', label: 'Home', icon: RiHome5Line },
     { id: 'store', label: 'Store', icon: MdOutlineStorefront },
+    { id: 'library', label: 'Library', icon: GoBook },
     // { id: 'revenue', label: 'Revenue', icon: CiViewList }
   ];
 
