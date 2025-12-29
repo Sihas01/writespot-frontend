@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
+import { FaXTwitter, FaFacebook, FaInstagram } from "react-icons/fa6";
 
 const AuthorProfileView = () => {
   const { authorId } = useParams();
@@ -72,25 +73,17 @@ const AuthorProfileView = () => {
               {profile.bio || "This author hasn't added a bio yet."}
             </p>
 
-            <div className="flex flex-wrap gap-3 mt-4">
-              {profile.website && (
-                <a
-                  href={profile.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-[#074B03] underline font-semibold font-nunito"
-                >
-                  Website
-                </a>
-              )}
+            <div className="flex flex-wrap items-center gap-3 mt-4">
               {profile.socialLinks?.twitter && (
                 <a
                   href={profile.socialLinks.twitter}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-blue-500 underline font-nunito"
+                  className="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-[#074B03] hover:text-white hover:bg-[#5A7C65] transition"
+                  aria-label="Twitter"
+                  title="Twitter"
                 >
-                  Twitter
+                  <FaXTwitter />
                 </a>
               )}
               {profile.socialLinks?.facebook && (
@@ -98,9 +91,11 @@ const AuthorProfileView = () => {
                   href={profile.socialLinks.facebook}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-blue-700 underline font-nunito"
+                  className="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-[#074B03] hover:text-white hover:bg-[#5A7C65] transition"
+                  aria-label="Facebook"
+                  title="Facebook"
                 >
-                  Facebook
+                  <FaFacebook />
                 </a>
               )}
               {profile.socialLinks?.instagram && (
@@ -108,19 +103,11 @@ const AuthorProfileView = () => {
                   href={profile.socialLinks.instagram}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-pink-500 underline font-nunito"
+                  className="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-[#074B03] hover:text-white hover:bg-[#5A7C65] transition"
+                  aria-label="Instagram"
+                  title="Instagram"
                 >
-                  Instagram
-                </a>
-              )}
-              {profile.socialLinks?.linkedin && (
-                <a
-                  href={profile.socialLinks.linkedin}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-blue-600 underline font-nunito"
-                >
-                  LinkedIn
+                  <FaInstagram />
                 </a>
               )}
             </div>

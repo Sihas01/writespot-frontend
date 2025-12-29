@@ -15,6 +15,7 @@ const Header = ({ username, isVisible }) => {
     const user = JSON.parse(localStorage.getItem("user"));
     const role = user?.role;
     const [avatarUrl, setAvatarUrl] = useState(() => localStorage.getItem("profileImageUrl") || "");
+    const [hasProfile, setHasProfile] = useState(false);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -50,6 +51,7 @@ const Header = ({ username, isVisible }) => {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const profile = res.data?.profile || {};
+                setHasProfile(Boolean(profile));
                 const profileUrl = profile.profileImageThumbUrl || profile.profileImageUrl || profile.profileImageMainUrl;
                 if (profileUrl) {
                     setAvatarUrl(profileUrl);
@@ -120,7 +122,7 @@ const Header = ({ username, isVisible }) => {
                                                 setOpen(false);
                                             }}
                                         >
-                                            Create/Edit Profile
+                                            {hasProfile ? "Edit Profile" : "Create Profile"}
                                         </button>
                                         <div className="border-t border-gray-100 my-1" />
                                     </>

@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
+import { FaTwitter, FaFacebookF, FaInstagram, FaLinkedinIn } from "react-icons/fa";
+import { FiEdit2 } from "react-icons/fi";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const SUPPORTED_TYPES = ["image/jpeg", "image/png"];
@@ -9,11 +11,9 @@ const initialState = {
   bio: "",
   profileImageKey: "",
   profileImageThumbKey: "",
-  website: "",
   twitter: "",
   facebook: "",
   instagram: "",
-  linkedin: "",
 };
 
 const validateUrl = (url) => {
@@ -26,7 +26,7 @@ const validateUrl = (url) => {
   }
 };
 
-const createThumbnail = (file, size = 200) =>
+const createThumbnail = (file, size = 200, zoom = 1, offset = { x: 0, y: 0 }) =>
   new Promise((resolve, reject) => {
     const img = new Image();
     const reader = new FileReader();
@@ -43,9 +43,14 @@ const createThumbnail = (file, size = 200) =>
         }
 
         const minSide = Math.min(img.width, img.height);
-        const sx = (img.width - minSide) / 2;
-        const sy = (img.height - minSide) / 2;
-        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+        const safeZoom = Math.max(zoom, 1);
+        const cropSize = minSide / safeZoom;
+        const maxShift = (minSide - cropSize) / 2;
+        const centerX = img.width / 2 + offset.x * maxShift;
+        const centerY = img.height / 2 + offset.y * maxShift;
+        const sx = Math.min(Math.max(centerX - cropSize / 2, 0), img.width - cropSize);
+        const sy = Math.min(Math.max(centerY - cropSize / 2, 0), img.height - cropSize);
+        ctx.drawImage(img, sx, sy, cropSize, cropSize, 0, 0, size, size);
 
         canvas.toBlob(
           (blob) => {
@@ -75,6 +80,14 @@ const AuthorProfileForm = () => {
   const [profileFile, setProfileFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [errors, setErrors] = useState({});
+  const [zoom, setZoom] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const previewRef = useRef(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalZoom, setModalZoom] = useState(1);
+  const [modalOffset, setModalOffset] = useState({ x: 0, y: 0 });
+  const [modalDragState, setModalDragState] = useState(null);
+  const modalPreviewRef = useRef(null);
 
   const token = localStorage.getItem("token");
 
@@ -95,6 +108,10 @@ const AuthorProfileForm = () => {
     setErrors((prev) => ({ ...prev, image: "" }));
     setProfileFile(file);
     setPreviewUrl(URL.createObjectURL(file));
+    setZoom(1);
+    setOffset({ x: 0, y: 0 });
+    setModalZoom(1);
+    setModalOffset({ x: 0, y: 0 });
   };
 
   const fetchProfile = async () => {
@@ -111,11 +128,9 @@ const AuthorProfileForm = () => {
         bio: profile.bio || "",
         profileImageKey: profile.profileImageKey || "",
         profileImageThumbKey: profile.profileImageThumbKey || "",
-        website: profile.website || "",
         twitter: profile.socialLinks?.twitter || "",
         facebook: profile.socialLinks?.facebook || "",
         instagram: profile.socialLinks?.instagram || "",
-        linkedin: profile.socialLinks?.linkedin || "",
       });
       const resolvedImage =
         profile.profileImageThumbUrl ||
@@ -149,11 +164,9 @@ const AuthorProfileForm = () => {
     const imagePresent = Boolean(form.profileImageKey || form.profileImageThumbKey || previewUrl);
     const bioPresent = Boolean(form.bio?.trim());
     const linksPresent = Boolean(
-      form.website?.trim() ||
-        form.twitter?.trim() ||
+      form.twitter?.trim() ||
         form.facebook?.trim() ||
-        form.instagram?.trim() ||
-        form.linkedin?.trim()
+        form.instagram?.trim()
     );
     const total = 3;
     const score = [imagePresent, bioPresent, linksPresent].filter(Boolean).length;
@@ -176,7 +189,7 @@ const AuthorProfileForm = () => {
         validationErrors.bio = `Bio must be ${BIO_MAX} characters or fewer.`;
       }
 
-      const urlFields = ["website", "twitter", "facebook", "instagram", "linkedin"];
+      const urlFields = ["twitter", "facebook", "instagram"];
       urlFields.forEach((field) => {
         if (!validateUrl(form[field])) {
           validationErrors[field] = "Enter a valid URL starting with http or https.";
@@ -194,7 +207,7 @@ const AuthorProfileForm = () => {
       let profileImageThumbKey = form.profileImageThumbKey;
 
       if (profileFile) {
-        const thumbFile = await createThumbnail(profileFile, 200);
+        const thumbFile = await createThumbnail(profileFile, 200, zoom, offset);
 
         const presignResponse = await fetch(
           "https://h4urlwkjgd.execute-api.us-east-1.amazonaws.com/generate-upload-url",
@@ -271,12 +284,10 @@ const AuthorProfileForm = () => {
           bio: form.bio,
           profileImageKey,
           profileImageThumbKey,
-          website: form.website,
           socialLinks: {
             twitter: form.twitter,
             facebook: form.facebook,
             instagram: form.instagram,
-            linkedin: form.linkedin,
           },
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -300,6 +311,10 @@ const AuthorProfileForm = () => {
         setPreviewUrl(refreshedImage);
         localStorage.setItem("profileImageUrl", refreshedImage);
       }
+      setOffset({ x: 0, y: 0 });
+      setZoom(1);
+      setModalOffset({ x: 0, y: 0 });
+      setModalZoom(1);
     } catch (err) {
       setMessage({
         type: "error",
@@ -364,17 +379,39 @@ const AuthorProfileForm = () => {
               }}
               onClick={() => document.getElementById("profile-image-input")?.click()}
             >
-              {previewUrl ? (
-                <img
-                  src={previewUrl}
-                  alt="Profile preview"
-                  className="w-24 h-24 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-nunito">
-                  Add Image
-                </div>
-              )}
+              <div
+                ref={previewRef}
+                className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center group"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (previewUrl) {
+                    setModalZoom(zoom);
+                    setModalOffset(offset);
+                    setIsModalOpen(true);
+                  }
+                }}
+              >
+                {previewUrl ? (
+                  <>
+                    <img
+                      src={previewUrl}
+                      alt="Profile preview"
+                      className="w-24 h-24 object-cover transition-transform"
+                      style={{
+                        transform: `scale(${zoom}) translate(${offset.x * 40}px, ${offset.y * 40}px)`,
+                        transformOrigin: "center",
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-nunito">
+                      <FiEdit2 className="mr-1" /> Edit (pan & zoom)
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-500 font-nunito">
+                    Add Image
+                  </div>
+                )}
+              </div>
               <p className="text-sm text-gray-600 font-nunito text-center">
                 Drag and drop or click to select a profile picture (JPG/PNG, up to 5MB)
               </p>
@@ -418,20 +455,6 @@ const AuthorProfileForm = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <label className="font-semibold text-gray-800 font-nunito">Website</label>
-              <input
-                type="url"
-                value={form.website}
-                onChange={(e) => handleChange("website", e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#5A7C65] font-nunito"
-                placeholder="https://yourwebsite.com"
-              />
-              {errors.website && <p className="text-sm text-red-600 font-nunito">{errors.website}</p>}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
               <label className="font-semibold text-gray-800 font-nunito">Twitter</label>
               <input
                 type="url"
@@ -464,17 +487,6 @@ const AuthorProfileForm = () => {
               />
               {errors.instagram && <p className="text-sm text-red-600 font-nunito">{errors.instagram}</p>}
             </div>
-            <div className="flex flex-col gap-2">
-              <label className="font-semibold text-gray-800 font-nunito">LinkedIn</label>
-              <input
-                type="url"
-                value={form.linkedin}
-                onChange={(e) => handleChange("linkedin", e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#5A7C65] font-nunito"
-                placeholder="https://linkedin.com/in/username"
-              />
-              {errors.linkedin && <p className="text-sm text-red-600 font-nunito">{errors.linkedin}</p>}
-            </div>
           </div>
 
           <div className="flex justify-end">
@@ -488,6 +500,125 @@ const AuthorProfileForm = () => {
           </div>
         </form>
       </div>
+
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 px-4"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 border border-gray-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold text-[#074B03] font-nunito mb-4">Adjust Image</h3>
+
+            <div
+              ref={modalPreviewRef}
+              className="relative w-56 h-56 mx-auto rounded-full overflow-hidden bg-gray-100 flex items-center justify-center mb-4 cursor-move select-none"
+              style={{ touchAction: "none" }}
+              onMouseDown={(e) => {
+                if (!previewUrl) return;
+                const rect = modalPreviewRef.current?.getBoundingClientRect();
+                setModalDragState({
+                  active: true,
+                  startX: e.clientX,
+                  startY: e.clientY,
+                  startOffset: modalOffset,
+                  rect,
+                });
+              }}
+              onMouseMove={(e) => {
+                if (!modalDragState?.active || !modalDragState.rect) return;
+                const { width, height } = modalDragState.rect;
+                const dx = (e.clientX - modalDragState.startX) / width;
+                const dy = (e.clientY - modalDragState.startY) / height;
+                const clamp = (val) => Math.min(Math.max(val, -1), 1);
+                setModalOffset({
+                  x: clamp(modalDragState.startOffset.x + dx),
+                  y: clamp(modalDragState.startOffset.y + dy),
+                });
+              }}
+              onMouseUp={() => setModalDragState(null)}
+              onMouseLeave={() => setModalDragState(null)}
+              onTouchStart={(e) => {
+                if (!previewUrl) return;
+                const touch = e.touches[0];
+                const rect = modalPreviewRef.current?.getBoundingClientRect();
+                setModalDragState({
+                  active: true,
+                  startX: touch.clientX,
+                  startY: touch.clientY,
+                  startOffset: modalOffset,
+                  rect,
+                });
+              }}
+              onTouchMove={(e) => {
+                if (!modalDragState?.active || !modalDragState.rect) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                const { width, height } = modalDragState.rect;
+                const dx = (touch.clientX - modalDragState.startX) / width;
+                const dy = (touch.clientY - modalDragState.startY) / height;
+                const clamp = (val) => Math.min(Math.max(val, -1), 1);
+                setModalOffset({
+                  x: clamp(modalDragState.startOffset.x + dx),
+                  y: clamp(modalDragState.startOffset.y + dy),
+                });
+              }}
+              onTouchEnd={() => setModalDragState(null)}
+            >
+              {previewUrl ? (
+                <img
+                  src={previewUrl}
+                  alt="Adjust preview"
+                    className="w-56 h-56 object-cover pointer-events-none"
+                  style={{
+                    transform: `scale(${modalZoom}) translate(${modalOffset.x * 60}px, ${modalOffset.y * 60}px)`,
+                    transformOrigin: "center",
+                  }}
+                />
+              ) : (
+                <div className="text-gray-500 font-nunito">No Image</div>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2 mb-4">
+              <label className="text-sm font-nunito text-gray-700">Zoom</label>
+              <input
+                type="range"
+                min="1"
+                max="3"
+                step="0.1"
+                value={modalZoom}
+                onChange={(e) => setModalZoom(Number(e.target.value))}
+                className="w-full accent-[#5A7C65]"
+                style={{ accentColor: "#5A7C65" }}
+              />
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-nunito hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setZoom(modalZoom);
+                  setOffset(modalOffset);
+                  setIsModalOpen(false);
+                }}
+                className="px-4 py-2 rounded-lg bg-[#5A7C65] text-white font-semibold font-nunito hover:opacity-90"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
