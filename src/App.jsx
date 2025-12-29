@@ -22,6 +22,7 @@ import Checkout from "./pages/Checkout";
 import ThankYou from "./pages/ThankYou";
 import PaymentFailed from "./pages/PaymentFailed";
 import Library from "./pages/Library";
+import EPubReader from "./pages/EPubReader";
 
 
 function App() {
@@ -72,6 +73,12 @@ function App() {
             <Route path="payment-failed" element={<PaymentFailed />} />
 
           </Route>
+
+          {/* Dedicated Reader Route */}
+          <Route
+            path="/reader/view/:bookId"
+            element={<RoleProtectedRoute role="reader"><EPubReader /></RoleProtectedRoute>}
+          />
 
           <Route path="*" element={<NotFound />} />
 
