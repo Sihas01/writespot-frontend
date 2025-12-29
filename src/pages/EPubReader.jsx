@@ -102,18 +102,39 @@ const EPubReader = () => {
                     url={bookData.epubUrl}
                     location={location}
                     locationChanged={locationChanged}
+                    getRendition={(rendition) => {
+                        rendition.hooks.content.register((contents) => {
+                            const doc = contents.document;
+                            const head = doc.querySelector("head");
+
+                            // Inject the font link into the iframe head
+                            const link = doc.createElement("link");
+                            link.rel = "stylesheet";
+                            link.href =
+                                "https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@100..900&display=swap";
+                            head.appendChild(link);
+
+                            // Apply the font to the body
+                            contents.addStylesheetRules({
+                                body: {
+                                    "font-family": '"Noto Sans Sinhala", sans-serif !important',
+                                },
+                            });
+                        });
+                    }}
                     epubOptions={{
-                        flow: 'paginated',
-                        manager: 'default',
+                        flow: "paginated",
+                        manager: "default",
                     }}
                     styles={{
                         container: {
-                            background: '#fff'
+                            background: "#fff",
                         },
                         reader: {
-                            background: '#fff',
-                            fontSize: `${size}%`
-                        }
+                            background: "#fff",
+                            fontSize: `${size}%`,
+                            fontFamily: '"Noto Sans Sinhala", sans-serif',
+                        },
                     }}
                 />
             </div>
