@@ -2,6 +2,8 @@ import AuthorDashboard from "./pages/AuthorDashboard"
 import AuthorHomePage from "./pages/AuthorHomePage"
 import LandingPage from "./pages/LandingPage"
 import AuthorRevenue from "./pages/AuthorRevenue"
+import AuthorProfileForm from "./pages/AuthorProfileForm"
+import AuthorProfileView from "./pages/AuthorProfileView"
 
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
@@ -56,6 +58,7 @@ function App() {
 
             <Route path="publications" element={<PublishingPage />} />
             <Route path="revenue" element={<AuthorRevenue />} />
+            <Route path="profile" element={<AuthorProfileForm />} />
           </Route>
 
           {/* Reader portal */}
@@ -74,6 +77,7 @@ function App() {
 
           </Route>
 
+          <Route path="/authors/:authorId" element={<AuthorProfileView />} />
           {/* Dedicated Reader Route */}
           <Route
             path="/reader/view/:bookId"

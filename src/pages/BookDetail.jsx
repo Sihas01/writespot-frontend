@@ -27,6 +27,7 @@ const BookDetail = () => {
   const reviewCount = book?.reviewCount ?? book?.ratingsCount ?? 0;
   const purchased = Boolean(book?.isPurchased || book?.purchased || book?.isOwned);
   const resolvedBookId = book?._id || book?.id || routeBookId;
+  const authorId = book?.authorProfile?.id || book?.createdBy;
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -106,6 +107,12 @@ const BookDetail = () => {
     }
   };
 
+  const handleAuthorClick = () => {
+    if (authorId) {
+      navigate(`/authors/${authorId}`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -142,7 +149,18 @@ const BookDetail = () => {
               {book.title || "Book Title"}
             </h1>
             <p className="text-sm font-nunito text-gray-700 mt-2">
-              By <span className="font-semibold">{authorName}</span>
+              By{" "}
+              {authorId ? (
+                <button
+                  type="button"
+                  onClick={handleAuthorClick}
+                  className="font-semibold text-[#074B03] hover:underline"
+                >
+                  {authorName}
+                </button>
+              ) : (
+                <span className="font-semibold">{authorName}</span>
+              )}
             </p>
           </div>
           <div className="flex items-center gap-3 text-gray-500">
