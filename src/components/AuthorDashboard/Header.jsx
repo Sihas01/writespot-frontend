@@ -2,10 +2,14 @@ import { IoSearchOutline } from "react-icons/io5";
 import { AiOutlineGlobal } from "react-icons/ai";
 import { RiUserLine } from "react-icons/ri";
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { fetchProfileStatus } from "../../services/authorService";
 
 const Header = ({ username, isVisible }) => {
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
+    const navigate = useNavigate();
+    const [profileInfo, setProfileInfo] = useState({ hasProfile: false, imageUrl: "" });
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -23,6 +27,24 @@ const Header = ({ username, isVisible }) => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [open]);
+
+    useEffect(() => {
+        const loadProfile = async () => {
+            try {
+                const res = await fetchProfileStatus();
+                setProfileInfo({
+                    hasProfile: Boolean(res?.hasProfile),
+                    imageUrl: res?.profile?.profileImageUrl || "",
+                });
+            } catch (err) {
+                console.warn("Profile status load failed", err?.message);
+            }
+        };
+        const user = JSON.parse(localStorage.getItem("user") || "null");
+        if (user?.role === "author") {
+            loadProfile();
+        }
+    }, []);
 
     const logout  = () => {
         localStorage.removeItem("token");
@@ -52,7 +74,15 @@ const Header = ({ username, isVisible }) => {
                             onClick={() => setOpen(!open)}
                             className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition"
                         >
-                            <RiUserLine className="w-5 h-5 text-gray-600" />
+                            {profileInfo.imageUrl ? (
+                                <img
+                                    src={profileInfo.imageUrl}
+                                    alt="avatar"
+                                    className="w-8 h-8 rounded-full object-cover border border-gray-200"
+                                />
+                            ) : (
+                                <RiUserLine className="w-5 h-5 text-gray-600" />
+                            )}
                             <span className="text-gray-700 font-medium">{username}</span>
                         </button>
 
@@ -60,9 +90,12 @@ const Header = ({ username, isVisible }) => {
                             <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
                                 <button
                                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                                    onClick={() => console.log("Go to profile")}
+                                    onClick={() => {
+                                        setOpen(false);
+                                        navigate("/dashboard/profile");
+                                    }}
                                 >
-                                    Go to Profile
+                                    {profileInfo.hasProfile ? "Edit Profile" : "Create Profile"}
                                 </button>
 
                                 <div className="border-t border-gray-100 my-1" />

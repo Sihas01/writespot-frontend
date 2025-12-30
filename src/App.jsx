@@ -23,6 +23,8 @@ import ThankYou from "./pages/ThankYou";
 import PaymentFailed from "./pages/PaymentFailed";
 import Library from "./pages/Library";
 import EPubReader from "./pages/EPubReader";
+import AuthorProfileForm from "./pages/AuthorProfileForm";
+import AuthorProfileView from "./pages/AuthorProfileView";
 
 
 function App() {
@@ -56,6 +58,7 @@ function App() {
 
             <Route path="publications" element={<PublishingPage />} />
             <Route path="revenue" element={<AuthorRevenue />} />
+            <Route path="profile" element={<AuthorProfileForm />} />
           </Route>
 
           {/* Reader portal */}
@@ -79,6 +82,8 @@ function App() {
             path="/reader/view/:bookId"
             element={<RoleProtectedRoute role="reader"><EPubReader /></RoleProtectedRoute>}
           />
+
+          <Route path="/author/:id" element={<AuthorProfileView />} />
 
           <Route path="*" element={<NotFound />} />
 
