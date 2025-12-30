@@ -23,6 +23,11 @@ const BookDetail = () => {
     return "Unknown Author";
   }, [book]);
 
+  const authorProfileId = useMemo(
+    () => book?.authorProfile?.profileId,
+    [book]
+  );
+
   const ratingValue = Number(book?.averageRating ?? book?.rating ?? 0);
   const reviewCount = book?.reviewCount ?? book?.ratingsCount ?? 0;
   const purchased = Boolean(book?.isPurchased || book?.purchased || book?.isOwned);
@@ -142,7 +147,18 @@ const BookDetail = () => {
               {book.title || "Book Title"}
             </h1>
             <p className="text-sm font-nunito text-gray-700 mt-2">
-              By <span className="font-semibold">{authorName}</span>
+              By{" "}
+              {authorProfileId ? (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/author/${authorProfileId}`)}
+                  className="font-semibold text-[#074B03] hover:underline"
+                >
+                  {authorName}
+                </button>
+              ) : (
+                <span className="font-semibold">{authorName}</span>
+              )}
             </p>
           </div>
           <div className="flex items-center gap-3 text-gray-500">
