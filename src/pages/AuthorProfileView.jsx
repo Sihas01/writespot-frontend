@@ -1,14 +1,22 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaXTwitter, FaFacebook, FaInstagram } from "react-icons/fa6";
+import { FiMail, FiUserPlus, FiCheck } from "react-icons/fi";
+import Header from "../components/ReaderPortal/Header";
+import Navigation from "../components/ReaderPortal/Navigation";
+import { CartProvider } from "../context/CartContext";
 
 const AuthorProfileView = () => {
   const { authorId } = useParams();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [following, setFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followLoading, setFollowLoading] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -30,136 +38,243 @@ const AuthorProfileView = () => {
     fetchProfile();
   }, [authorId]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-600 font-nunito">Loading author...</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const fetchFollowState = async () => {
+      const token = localStorage.getItem("token");
+      if (!authorId) return;
+      try {
+        const countRes = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/authors/${authorId}/followers-count`
+        );
+        setFollowersCount(countRes.data?.count || 0);
+      } catch (err) {
+        console.error("Failed to load followers count", err);
+      }
+      if (!token) return;
+      try {
+        const followRes = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/authors/${authorId}/is-following`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setFollowing(Boolean(followRes.data?.following));
+      } catch (err) {
+        console.error("Failed to load follow state", err);
+      }
+    };
+    fetchFollowState();
+  }, [authorId]);
 
-  if (error || !profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="bg-white border border-red-200 text-red-700 px-6 py-4 rounded-lg shadow-sm font-nunito">
-          {error || "Author not found"}
+  const handleFollowToggle = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+    if (!authorId) return;
+    setFollowLoading(true);
+    const next = !following;
+    setFollowing(next);
+    setFollowersCount((c) => c + (next ? 1 : -1));
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/authors/${authorId}/follow`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (err) {
+      // revert on failure
+      setFollowing(!next);
+      setFollowersCount((c) => c + (next ? -1 : 1));
+      console.error("Follow toggle failed", err);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
+  const handleTabChange = (tab) => {
+    navigate(`/reader/dashboard/${tab}`);
+  };
+
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <p className="text-gray-600 font-nunito">Loading author...</p>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  return (
-    <div className="bg-gray-50 min-h-screen pb-16">
-      <div className="max-w-5xl mx-auto px-4 lg:px-0">
-        <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-start pt-10">
-          <div className="w-32 h-32 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-            {profile.profileImageThumbUrl || profile.profileImageUrl ? (
-              <img
-                src={profile.profileImageThumbUrl || profile.profileImageUrl}
-                alt={profile.name}
-                className="w-full h-full object-cover"
-              />
+    if (error || !profile) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+          <div className="bg-white border border-red-200 text-red-700 px-6 py-4 rounded-lg shadow-sm font-nunito">
+            {error || "Author not found"}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-gray-50 min-h-screen pb-16">
+        <div className="max-w-5xl mx-auto px-4 lg:px-0">
+          <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-start pt-10">
+            <div className="w-32 h-32 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+              {profile.profileImageThumbUrl || profile.profileImageUrl ? (
+                <img
+                  src={profile.profileImageThumbUrl || profile.profileImageUrl}
+                  alt={profile.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-500 font-nunito">
+                  No Image
+                </div>
+              )}
+            </div>
+            <div className="flex-1">
+              <div className="flex items-start gap-3 flex-wrap">
+                <h1 className="text-3xl font-extrabold text-[#5A7C65] font-nunito">
+                  {profile.name || "Author"}
+                </h1>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleFollowToggle}
+                    disabled={followLoading}
+                    className={`px-3 py-2 rounded-lg text-sm font-semibold font-nunito flex items-center gap-2 transition ${
+                      following
+                        ? "border border-gray-200 text-gray-700 bg-white hover:bg-gray-50"
+                        : "bg-[#5A7C65] text-white hover:opacity-90"
+                    }`}
+                  >
+                    {following ? <FiCheck /> : <FiUserPlus />}
+                    {following ? "Following" : "Follow"}
+                  </button>
+                  <span className="text-sm text-gray-600 font-nunito">
+                    {followersCount?.toLocaleString?.() || followersCount} Followers
+                  </span>
+                </div>
+              </div>
+              <p className="text-gray-700 font-nunito mt-3 whitespace-pre-line">
+                {profile.bio || "This author hasn't added a bio yet."}
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3 mt-4">
+                {profile.newsletterUrl && (
+                  <a
+                    href={profile.newsletterUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#5A7C65] text-[#5A7C65] font-semibold font-nunito hover:bg-[#5A7C65] hover:text-white transition"
+                  >
+                    <FiMail className="w-4 h-4" />
+                    Subscribe to Newsletter
+                  </a>
+                )}
+                {profile.socialLinks?.twitter && (
+                  <a
+                    href={profile.socialLinks.twitter}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-[#074B03] hover:text-white hover:bg-[#5A7C65] transition"
+                    aria-label="Twitter"
+                    title="Twitter"
+                  >
+                    <FaXTwitter />
+                  </a>
+                )}
+                {profile.socialLinks?.facebook && (
+                  <a
+                    href={profile.socialLinks.facebook}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-[#074B03] hover:text-white hover:bg-[#5A7C65] transition"
+                    aria-label="Facebook"
+                    title="Facebook"
+                  >
+                    <FaFacebook />
+                  </a>
+                )}
+                {profile.socialLinks?.instagram && (
+                  <a
+                    href={profile.socialLinks.instagram}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-[#074B03] hover:text-white hover:bg-[#5A7C65] transition"
+                    aria-label="Instagram"
+                    title="Instagram"
+                  >
+                    <FaInstagram />
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold text-gray-800 font-nunito">Books by {profile.name}</h2>
+            {books.length === 0 ? (
+              <p className="mt-3 text-gray-600 font-nunito">No books listed yet.</p>
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-500 font-nunito">
-                No Image
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                {books.map((book) => (
+                  <Link
+                    key={book._id}
+                    to={book._id ? `/reader/dashboard/store/${book._id}` : "#"}
+                    className="p-4 rounded-xl flex flex-col shadow-sm bg-white hover:shadow-md transition-shadow"
+                  >
+                    <div className="relative">
+                      <img
+                        src={book.coverUrl || book.coverImagePath || ""}
+                        alt={book.title}
+                        className="w-full max-h-64 object-contain rounded-lg"
+                      />
+                    </div>
+                    <div className="flex flex-col mt-4 gap-2">
+                      <p className="text-[16px] font-semibold font-nunito leading-snug text-gray-900">
+                        {book.title}
+                      </p>
+                      <p className="font-light text-[14px] font-nunito text-gray-700">
+                        {book.author?.firstName} {book.author?.lastName}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        {book.price != null && (
+                          <span className="text-sm font-semibold text-[#2E8B57]">
+                            LKR {book.price}
+                          </span>
+                        )}
+                        {book.discount ? (
+                          <span className="text-xs text-gray-500 font-nunito">
+                            {book.discount}% off
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
               </div>
             )}
           </div>
-          <div className="flex-1">
-            <h1 className="text-3xl font-extrabold text-[#5A7C65] font-nunito">
-              {profile.name || "Author"}
-            </h1>
-            <p className="text-gray-700 font-nunito mt-3 whitespace-pre-line">
-              {profile.bio || "This author hasn't added a bio yet."}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-3 mt-4">
-              {profile.socialLinks?.twitter && (
-                <a
-                  href={profile.socialLinks.twitter}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-[#074B03] hover:text-white hover:bg-[#5A7C65] transition"
-                  aria-label="Twitter"
-                  title="Twitter"
-                >
-                  <FaXTwitter />
-                </a>
-              )}
-              {profile.socialLinks?.facebook && (
-                <a
-                  href={profile.socialLinks.facebook}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-[#074B03] hover:text-white hover:bg-[#5A7C65] transition"
-                  aria-label="Facebook"
-                  title="Facebook"
-                >
-                  <FaFacebook />
-                </a>
-              )}
-              {profile.socialLinks?.instagram && (
-                <a
-                  href={profile.socialLinks.instagram}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-[#074B03] hover:text-white hover:bg-[#5A7C65] transition"
-                  aria-label="Instagram"
-                  title="Instagram"
-                >
-                  <FaInstagram />
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-800 font-nunito">Books by {profile.name}</h2>
-          {books.length === 0 ? (
-            <p className="mt-3 text-gray-600 font-nunito">No books listed yet.</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-              {books.map((book) => (
-                <Link
-                  key={book._id}
-                  to={book._id ? `/reader/dashboard/store/${book._id}` : "#"}
-                  className="p-4 rounded-xl flex flex-col shadow-sm bg-white hover:shadow-md transition-shadow"
-                >
-                  <div className="relative">
-                    <img
-                      src={book.coverUrl || book.coverImagePath || ""}
-                      alt={book.title}
-                      className="w-full max-h-64 object-contain rounded-lg"
-                    />
-                  </div>
-                  <div className="flex flex-col mt-4 gap-2">
-                    <p className="text-[16px] font-semibold font-nunito leading-snug text-gray-900">
-                      {book.title}
-                    </p>
-                    <p className="font-light text-[14px] font-nunito text-gray-700">
-                      {book.author?.firstName} {book.author?.lastName}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      {book.price != null && (
-                        <span className="text-sm font-semibold text-[#2E8B57]">
-                          LKR {book.price}
-                        </span>
-                      )}
-                      {book.discount ? (
-                        <span className="text-xs text-gray-500 font-nunito">
-                          {book.discount}% off
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
         </div>
       </div>
-    </div>
+    );
+  };
+
+  return (
+    <CartProvider>
+      <div className="bg-gray-50 min-h-screen">
+        <Header
+          username={
+            localStorage.getItem("user")
+              ? JSON.parse(localStorage.getItem("user"))?.name?.split(" ")[0]
+              : "Reader"
+          }
+          isVisible
+        />
+        <Navigation activeTab={"store"} onTabChange={handleTabChange} isSticky={false} />
+        <div className="px-4 lg:px-32 mt-4">{renderContent()}</div>
+      </div>
+    </CartProvider>
   );
 };
 

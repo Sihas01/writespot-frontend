@@ -14,6 +14,7 @@ const initialState = {
   twitter: "",
   facebook: "",
   instagram: "",
+  newsletterUrl: "",
 };
 
 const validateUrl = (url) => {
@@ -88,6 +89,7 @@ const AuthorProfileForm = () => {
   const [modalOffset, setModalOffset] = useState({ x: 0, y: 0 });
   const [modalDragState, setModalDragState] = useState(null);
   const modalPreviewRef = useRef(null);
+  const [followersCount, setFollowersCount] = useState(null);
 
   const token = localStorage.getItem("token");
 
@@ -124,6 +126,9 @@ const AuthorProfileForm = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const profile = res.data?.profile || {};
+      if (typeof res.data?.followersCount === "number") {
+        setFollowersCount(res.data.followersCount);
+      }
       setForm({
         bio: profile.bio || "",
         profileImageKey: profile.profileImageKey || "",
@@ -131,6 +136,7 @@ const AuthorProfileForm = () => {
         twitter: profile.socialLinks?.twitter || "",
         facebook: profile.socialLinks?.facebook || "",
         instagram: profile.socialLinks?.instagram || "",
+        newsletterUrl: profile.newsletterUrl || "",
       });
       const resolvedImage =
         profile.profileImageThumbUrl ||
@@ -166,7 +172,8 @@ const AuthorProfileForm = () => {
     const linksPresent = Boolean(
       form.twitter?.trim() ||
         form.facebook?.trim() ||
-        form.instagram?.trim()
+        form.instagram?.trim() ||
+        form.newsletterUrl?.trim()
     );
     const total = 3;
     const score = [imagePresent, bioPresent, linksPresent].filter(Boolean).length;
@@ -189,7 +196,7 @@ const AuthorProfileForm = () => {
         validationErrors.bio = `Bio must be ${BIO_MAX} characters or fewer.`;
       }
 
-      const urlFields = ["twitter", "facebook", "instagram"];
+      const urlFields = ["twitter", "facebook", "instagram", "newsletterUrl"];
       urlFields.forEach((field) => {
         if (!validateUrl(form[field])) {
           validationErrors[field] = "Enter a valid URL starting with http or https.";
@@ -289,6 +296,7 @@ const AuthorProfileForm = () => {
             facebook: form.facebook,
             instagram: form.instagram,
           },
+          newsletterUrl: form.newsletterUrl,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -315,6 +323,10 @@ const AuthorProfileForm = () => {
       setZoom(1);
       setModalOffset({ x: 0, y: 0 });
       setModalZoom(1);
+      // update follower count display if returned
+      if (typeof refreshed.data?.followersCount === "number") {
+        setFollowersCount(refreshed.data.followersCount);
+      }
     } catch (err) {
       setMessage({
         type: "error",
@@ -341,6 +353,11 @@ const AuthorProfileForm = () => {
           <p className="text-gray-600 font-nunito mt-1">
             Share your bio, links, and image so readers can learn about you.
           </p>
+          {typeof followersCount === "number" && (
+            <p className="text-sm text-gray-600 font-nunito mt-1">
+              Followers: <span className="font-semibold">{followersCount.toLocaleString()}</span>
+            </p>
+          )}
           <div className="mt-3 flex items-center gap-2">
             <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
               <div
@@ -487,6 +504,23 @@ const AuthorProfileForm = () => {
               />
               {errors.instagram && <p className="text-sm text-red-600 font-nunito">{errors.instagram}</p>}
             </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="font-semibold text-gray-800 font-nunito">Newsletter / Substack URL</label>
+            <input
+              type="url"
+              value={form.newsletterUrl}
+              onChange={(e) => handleChange("newsletterUrl", e.target.value)}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#5A7C65] font-nunito"
+              placeholder="https://yournewsletter.com/subscribe"
+            />
+            <p className="text-sm text-gray-500 font-nunito">
+              Paste the link to your external subscribe page (e.g., Substack, Mailchimp).
+            </p>
+            {errors.newsletterUrl && (
+              <p className="text-sm text-red-600 font-nunito">{errors.newsletterUrl}</p>
+            )}
           </div>
 
           <div className="flex justify-end">
