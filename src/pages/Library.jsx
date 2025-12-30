@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const statusFilters = ["All", "Currently Reading", "Finished"];
 
@@ -7,10 +8,10 @@ const deriveStatus = (book) => {
   const progress =
     Number(
       book?.readingProgress?.percentage ??
-        book?.readingProgress?.progress ??
-        book?.progressPercentage ??
-        book?.progress ??
-        0
+      book?.readingProgress?.progress ??
+      book?.progressPercentage ??
+      book?.progress ??
+      0
     ) || 0;
 
   const finished =
@@ -30,6 +31,7 @@ const deriveStatus = (book) => {
 };
 
 const Library = () => {
+  const navigate = useNavigate();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -97,11 +99,10 @@ const Library = () => {
                   key={item}
                   type="button"
                   onClick={() => setFilter(item)}
-                  className={`px-4 py-2 rounded-full border text-sm font-semibold font-nunito transition ${
-                    active
+                  className={`px-4 py-2 rounded-full border text-sm font-semibold font-nunito transition ${active
                       ? "bg-[#5A7C65] text-white border-[#5A7C65]"
                       : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
-                  }`}
+                    }`}
                 >
                   {item} {count ? `(${count})` : ""}
                 </button>
@@ -172,13 +173,12 @@ const Library = () => {
                           <p className="text-sm text-gray-600 font-nunito mt-1">{author}</p>
                         </div>
                         <span
-                          className={`text-xs px-2 py-1 rounded-full font-semibold font-nunito ${
-                            status === "Finished"
+                          className={`text-xs px-2 py-1 rounded-full font-semibold font-nunito ${status === "Finished"
                               ? "bg-green-50 text-green-700"
                               : status === "Currently Reading"
-                              ? "bg-blue-50 text-blue-700"
-                              : "bg-gray-100 text-gray-700"
-                          }`}
+                                ? "bg-blue-50 text-blue-700"
+                                : "bg-gray-100 text-gray-700"
+                            }`}
                         >
                           {status}
                         </span>
@@ -192,9 +192,8 @@ const Library = () => {
 
                       <button
                         type="button"
-                        disabled
-                        title="Reader coming soon"
-                        className="mt-2 w-full flex items-center justify-center gap-2 bg-[#5A7C65] text-white px-4 py-2.5 rounded-lg font-semibold hover:opacity-90 disabled:opacity-80"
+                        onClick={() => navigate(`/reader/view/${bookId}`)}
+                        className="mt-2 w-full flex items-center justify-center gap-2 bg-[#5A7C65] text-white px-4 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity"
                       >
                         Read Now
                       </button>
