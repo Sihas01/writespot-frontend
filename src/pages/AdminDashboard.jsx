@@ -6,6 +6,7 @@ const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState("users");
     const [users, setUsers] = useState([]);
     const [books, setBooks] = useState([]);
+    const [auditLogs, setAuditLogs] = useState([]);
     const [loading, setLoading] = useState(false);
     const [viewReportBook, setViewReportBook] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -55,6 +56,21 @@ const AdminDashboard = () => {
         }
     };
 
+    const fetchAuditLogs = async (page = 1) => {
+        setLoading(true);
+        try {
+            const res = await axios.get(`${apiBase}/api/admin/audit-logs?page=${page}&limit=10`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setAuditLogs(res.data?.data || []);
+            setTotalPages(res.data?.pagination?.pages || 1);
+        } catch (err) {
+            console.error("Failed to fetch audit logs", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleDeleteUser = async (id) => {
         if (!window.confirm("Are you sure you want to delete this user?")) return;
         try {
@@ -89,6 +105,7 @@ const AdminDashboard = () => {
     useEffect(() => {
         if (activeTab === "users") fetchUsers(currentPage);
         if (activeTab === "books") fetchBooks(currentPage);
+        if (activeTab === "audit") fetchAuditLogs(currentPage);
     }, [activeTab, currentPage]);
 
     return (
@@ -149,6 +166,15 @@ const AdminDashboard = () => {
                 >
                     Book Management
                 </button>
+                <button
+                    className={`px-6 py-3 font-medium text-sm transition-colors ${activeTab === "audit"
+                        ? "border-b-2 border-[#074B03] text-[#074B03]"
+                        : "text-gray-600 hover:text-gray-900"
+                        }`}
+                    onClick={() => setActiveTab("audit")}
+                >
+                    Audit Logs
+                </button>
             </div>
 
             {/* Pagination Controls - Top */}
@@ -187,13 +213,21 @@ const AdminDashboard = () => {
                                         <th className="px-6 py-4 font-medium">Role</th>
                                         <th className="px-6 py-4 font-medium text-right">Actions</th>
                                     </>
-                                ) : (
+                                ) : activeTab === "books" ? (
                                     <>
                                         <th className="px-6 py-4 font-medium">Title</th>
                                         <th className="px-6 py-4 font-medium">Author</th>
                                         <th className="px-6 py-4 font-medium">Price</th>
                                         <th className="px-6 py-4 font-medium">Reports</th>
                                         <th className="px-6 py-4 font-medium text-right">Actions</th>
+                                    </>
+                                ) : (
+                                    <>
+                                        <th className="px-6 py-4 font-medium">Date</th>
+                                        <th className="px-6 py-4 font-medium">Admin</th>
+                                        <th className="px-6 py-4 font-medium">Action</th>
+                                        <th className="px-6 py-4 font-medium">Target</th>
+                                        <th className="px-6 py-4 font-medium">Details</th>
                                     </>
                                 )}
                             </tr>
@@ -213,6 +247,10 @@ const AdminDashboard = () => {
 
                             {!loading && activeTab === "books" && books.length === 0 && (
                                 <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">No books found.</td></tr>
+                            )}
+
+                            {!loading && activeTab === "audit" && auditLogs.length === 0 && (
+                                <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-500">No audit logs found.</td></tr>
                             )}
 
                             {!loading && activeTab === "users" && users.map((user) => (
@@ -264,6 +302,29 @@ const AdminDashboard = () => {
                                         >
                                             Delete
                                         </button>
+                                    </td>
+                                </tr>
+                            ))}
+
+                            {!loading && activeTab === "audit" && auditLogs.map((log) => (
+                                <tr key={log._id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 text-xs text-gray-500">
+                                        {new Date(log.createdAt).toLocaleString()}
+                                    </td>
+                                    <td className="px-6 py-4 font-medium text-gray-900">
+                                        {log.adminId?.name || "System"}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className={`px-2 py-1 rounded text-xs font-semibold ${log.action.includes('DELETE') ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                                            }`}>
+                                            {log.action}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {log.targetType}: {log.targetName}
+                                    </td>
+                                    <td className="px-6 py-4 text-xs text-gray-600 truncate max-w-xs">
+                                        {log.details}
                                     </td>
                                 </tr>
                             ))}
