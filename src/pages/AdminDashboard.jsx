@@ -8,6 +8,8 @@ const AdminDashboard = () => {
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(false);
     const [viewReportBook, setViewReportBook] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     const token = localStorage.getItem("token");
     const apiBase = import.meta.env.VITE_API_URL;
@@ -23,13 +25,14 @@ const AdminDashboard = () => {
         }
     };
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (page = 1) => {
         setLoading(true);
         try {
-            const res = await axios.get(`${apiBase}/api/admin/users`, {
+            const res = await axios.get(`${apiBase}/api/admin/users?page=${page}&limit=10`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setUsers(res.data?.data || []);
+            setTotalPages(res.data?.pagination?.pages || 1);
         } catch (err) {
             console.error("Failed to fetch users", err);
         } finally {
@@ -37,13 +40,14 @@ const AdminDashboard = () => {
         }
     };
 
-    const fetchBooks = async () => {
+    const fetchBooks = async (page = 1) => {
         setLoading(true);
         try {
-            const res = await axios.get(`${apiBase}/api/admin/books`, {
+            const res = await axios.get(`${apiBase}/api/admin/books?page=${page}&limit=10`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setBooks(res.data?.data || []);
+            setTotalPages(res.data?.pagination?.pages || 1);
         } catch (err) {
             console.error("Failed to fetch books", err);
         } finally {
@@ -57,7 +61,7 @@ const AdminDashboard = () => {
             await axios.delete(`${apiBase}/api/admin/users/${id}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            fetchUsers();
+            fetchUsers(currentPage);
             fetchStats(); // Update stats
         } catch (err) {
             alert(err.response?.data?.message || "Failed to delete user");
@@ -70,7 +74,7 @@ const AdminDashboard = () => {
             await axios.delete(`${apiBase}/api/admin/books/${id}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            fetchBooks();
+            fetchBooks(currentPage);
             fetchStats(); // Update stats
         } catch (err) {
             alert(err.response?.data?.message || "Failed to delete book");
@@ -79,9 +83,13 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         fetchStats();
-        if (activeTab === "users") fetchUsers();
-        if (activeTab === "books") fetchBooks();
+        setCurrentPage(1); // Reset to first page when changing tabs
     }, [activeTab]);
+
+    useEffect(() => {
+        if (activeTab === "users") fetchUsers(currentPage);
+        if (activeTab === "books") fetchBooks(currentPage);
+    }, [activeTab, currentPage]);
 
     return (
         <div className="min-h-screen bg-gray-50 px-4 lg:px-32 py-6 space-y-8">
@@ -141,6 +149,29 @@ const AdminDashboard = () => {
                 >
                     Book Management
                 </button>
+            </div>
+
+            {/* Pagination Controls - Top */}
+            <div className="flex justify-between items-center py-2">
+                <p className="text-sm text-gray-500">
+                    Showing page {currentPage} of {totalPages}
+                </p>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1 || loading}
+                        className="px-3 py-1 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Previous
+                    </button>
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages || loading}
+                        className="px-3 py-1 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Next
+                    </button>
+                </div>
             </div>
 
             {/* Content Area */}
