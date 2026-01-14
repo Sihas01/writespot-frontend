@@ -26,10 +26,18 @@ export default function LoginPage() {
     const user = JSON.parse(localStorage.getItem("user") || "null");
 
     if (token && user?.role) {
-      if (user.role.toLowerCase() === "author") {
+      if (user.role.toLowerCase() === "admin") {
+        navigate("/admin/dashboard");
+      } else if (user.role.toLowerCase() === "author") {
         navigate("/dashboard");
       } else {
         navigate("/reader/dashboard");
+      }
+    } else {
+      // If state is invalid/partial, clean up to prevent loops or bugs
+      if (token || user) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
       }
     }
   }, [navigate]);
@@ -57,7 +65,9 @@ export default function LoginPage() {
       alert("Login Successful! Welcome back to WriteSpot");
 
       if (res.data.token && res.data.user?.role) {
-        if (res.data.user.role.toLowerCase() === "author") {
+        if (res.data.user.role.toLowerCase() === "admin") {
+          navigate("/admin/dashboard");
+        } else if (res.data.user.role.toLowerCase() === "author") {
           navigate("/dashboard");
         } else {
           navigate("/reader/dashboard");
@@ -128,6 +138,7 @@ export default function LoginPage() {
                   <option value="" disabled>Select Role</option>
                   <option value="reader">Reader</option>
                   <option value="author">Author</option>
+                  <option value="admin">Admin</option>
                 </select>
 
                 <input

@@ -12,8 +12,34 @@ const BookDetail = () => {
   const [error, setError] = useState("");
   const [cartStatus, setCartStatus] = useState({ type: "", message: "" });
   const [buying, setBuying] = useState(false);
+
+  // Report Feature State
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportLoading, setReportLoading] = useState(false);
+
   const { addToCart, actionLoading } = useCart();
   const navigate = useNavigate();
+
+  const handleReportSubmit = async () => {
+    if (!reportReason.trim()) return;
+    setReportLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/books/${resolvedBookId}/report`,
+        { reason: reportReason },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert("Report submitted successfully. Thank you.");
+      setShowReportModal(false);
+      setReportReason("");
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to submit report");
+    } finally {
+      setReportLoading(false);
+    }
+  };
 
   const authorName = useMemo(() => {
     if (book?.author?.firstName || book?.author?.lastName) {
@@ -44,7 +70,7 @@ const BookDetail = () => {
         const res = await axios.get(
           `${import.meta.env.VITE_API_URL}/books/${routeBookId}/reader`,
           {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
           }
         );
 
@@ -72,7 +98,7 @@ const BookDetail = () => {
   };
 
   const handleAddToCart = async () => {
-      setCartStatus({ type: "", message: "" });
+    setCartStatus({ type: "", message: "" });
 
     const result = await addToCart({
       bookId: resolvedBookId,
@@ -86,7 +112,7 @@ const BookDetail = () => {
   };
 
   const handleBuyNow = async () => {
-      setCartStatus({ type: "", message: "" });
+    setCartStatus({ type: "", message: "" });
 
     if (purchased) {
       setCartStatus({ type: "error", message: "You already own this book" });
@@ -176,6 +202,13 @@ const BookDetail = () => {
             >
               <FiShare2 className="w-5 h-5" />
             </button>
+            <button
+              type="button"
+              onClick={() => setShowReportModal(true)}
+              className="text-red-500 hover:text-red-700 text-sm font-semibold ml-2 hover:bg-red-50 px-3 py-1 rounded-full transition"
+            >
+              Report
+            </button>
           </div>
         </div>
 
@@ -262,11 +295,10 @@ const BookDetail = () => {
 
             {cartStatus.message && (
               <div
-                className={`mt-4 px-4 py-3 rounded-lg border font-nunito ${
-                  cartStatus.type === "success"
-                    ? "bg-green-50 text-green-700 border-green-200"
-                    : "bg-red-50 text-red-700 border-red-200"
-                }`}
+                className={`mt-4 px-4 py-3 rounded-lg border font-nunito ${cartStatus.type === "success"
+                  ? "bg-green-50 text-green-700 border-green-200"
+                  : "bg-red-50 text-red-700 border-red-200"
+                  }`}
               >
                 {cartStatus.message}
               </div>
@@ -281,6 +313,36 @@ const BookDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Report Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+            <h3 className="text-xl font-bold mb-4 text-gray-800">Report this Book</h3>
+            <textarea
+              className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:ring-2 focus:ring-red-500 min-h-[100px]"
+              placeholder="Why are you reporting this book? (e.g., Inappropriate content, Copyright issue)"
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+            />
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={() => setShowReportModal(false)}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleReportSubmit}
+                disabled={reportLoading || !reportReason.trim()}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+              >
+                {reportLoading ? "Submitting..." : "Submit Report"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

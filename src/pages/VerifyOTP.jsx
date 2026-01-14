@@ -19,14 +19,14 @@ export default function VerifyOTP() {
   // Auto-resend OTP when coming from login modal
   const [otpSent, setOtpSent] = useState(false);
 
-const didRun = useRef(false);
+  const didRun = useRef(false);
 
-useEffect(() => {
-  if (autoResend && !didRun.current) {
-    didRun.current = true;
-    handleResend();
-  }
-}, [autoResend]);
+  useEffect(() => {
+    if (autoResend && !didRun.current) {
+      didRun.current = true;
+      handleResend();
+    }
+  }, [autoResend]);
 
 
 
@@ -48,8 +48,15 @@ useEffect(() => {
       });
 
       localStorage.setItem("token", res.data.token);
+
+      const userRole = role?.toLowerCase() || "reader";
+      let targetPath = "/reader/dashboard";
+
+      if (userRole === "admin") targetPath = "/admin/dashboard";
+      else if (userRole === "author") targetPath = "/dashboard";
+
       setMessage("Email verified successfully! Redirecting...");
-      setTimeout(() => navigate("/login"), 2000);
+      setTimeout(() => navigate(targetPath), 2000);
     } catch (err) {
       setMessage(err.response?.data?.msg || "Invalid or expired OTP");
     } finally {
@@ -61,7 +68,7 @@ useEffect(() => {
     setResendLoading(true);
     setMessage("Sending new code...");
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/resend-otp`, { email,role });
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/resend-otp`, { email, role });
       setMessage("New OTP sent! Check your email");
     } catch (err) {
       setMessage(err.response?.data?.msg || "Failed to resend OTP");
@@ -72,29 +79,29 @@ useEffect(() => {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen mt-12 md:mt-0">
-  {/* LEFT - GREEN SIDE */}
-  <div
-    className="lg:w-1/2 w-full bg-green-800 relative md:flex items-center justify-center overflow-hidden h-64 lg:h-auto hidden"
-    style={{
-      backgroundImage: `url(${pattern})`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-    }}
-  >
-    <div className="absolute inset-0 bg-green-800/70"></div>
-    <h1 className="absolute top-6 lg:top-10 left-6 lg:left-10 text-4xl lg:text-6xl font-light font-inknut text-white tracking-wider">
-      WriteSpot
-    </h1>
-    <img
-      src={logo}
-      alt="books"
-      className="w-64 lg:w-96 z-10 drop-shadow-2xl"
-    />
-  </div>
+      {/* LEFT - GREEN SIDE */}
+      <div
+        className="lg:w-1/2 w-full bg-green-800 relative md:flex items-center justify-center overflow-hidden h-64 lg:h-auto hidden"
+        style={{
+          backgroundImage: `url(${pattern})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="absolute inset-0 bg-green-800/70"></div>
+        <h1 className="absolute top-6 lg:top-10 left-6 lg:left-10 text-4xl lg:text-6xl font-light font-inknut text-white tracking-wider">
+          WriteSpot
+        </h1>
+        <img
+          src={logo}
+          alt="books"
+          className="w-64 lg:w-96 z-10 drop-shadow-2xl"
+        />
+      </div>
 
-  {/* RIGHT - OTP FORM */}
-  <div className="lg:w-1/2 w-full bg-gray-50 flex items-center justify-center p-6 lg:p-10">
-    <div className="max-w-md w-full">
+      {/* RIGHT - OTP FORM */}
+      <div className="lg:w-1/2 w-full bg-gray-50 flex items-center justify-center p-6 lg:p-10">
+        <div className="max-w-md w-full">
           <h2 className="text-4xl font-bold text-center mb-4 text-gray-800">Verify Email</h2>
           <p className="text-center text-gray-600 mb-10">
             Enter the 6-digit code sent to

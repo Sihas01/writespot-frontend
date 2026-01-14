@@ -27,9 +27,9 @@ import AuthorProfileForm from "./pages/AuthorProfileForm";
 import AuthorProfileView from "./pages/AuthorProfileView";
 
 
+import AdminDashboard from "./pages/AdminDashboard";
+
 function App() {
-
-
   return (
     <>
       <Router>
@@ -43,6 +43,15 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
 
+          {/* Admin Dashboard */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <RoleProtectedRoute role="admin">
+                <AdminDashboard />
+              </RoleProtectedRoute>
+            }
+          />
 
           {/* Author portal */}
           <Route
