@@ -27,10 +27,10 @@ const Header = ({ username, isVisible }) => {
         };
     }, [open]);
 
-    const logout  = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        window.location.href = "/";
+    const logout = () => {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = "/login";
     }
 
     return (
