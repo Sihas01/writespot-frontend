@@ -9,6 +9,10 @@ import {
   fetchPublicAuthorProfile,
   toggleFollowAuthor,
 } from "../services/authorService";
+import {
+  subscribeToAuthor,
+  unsubscribeFromAuthor,
+} from "../services/newsletterService";
 
 const AuthorProfileView = () => {
   const { id } = useParams();
@@ -20,6 +24,9 @@ const AuthorProfileView = () => {
   const [followers, setFollowers] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscribersCount, setSubscribersCount] = useState(0);
+  const [subscribeLoading, setSubscribeLoading] = useState(false);
   const [showHeader, setShowHeader] = useState(true);
   const [isNavSticky, setIsNavSticky] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -35,6 +42,8 @@ const AuthorProfileView = () => {
         setBooks(res.books || []);
         setFollowers(res.profile?.followersCount || 0);
         setIsFollowing(Boolean(res.isFollowing));
+        setIsSubscribed(Boolean(res.isSubscribed));
+        setSubscribersCount(res.subscribersCount || 0);
       } catch (err) {
         setError(err.message || "Failed to load profile");
       } finally {
@@ -89,6 +98,39 @@ const AuthorProfileView = () => {
       setError(err.message || "Failed to update follow");
     } finally {
       setFollowLoading(false);
+    }
+  };
+
+  const handleSubscribeToggle = async () => {
+    if (!localStorage.getItem("token")) {
+      navigate("/login");
+      return;
+    }
+    if (!profile) return;
+    setSubscribeLoading(true);
+    setError("");
+    const optimisticSubscribe = !isSubscribed;
+    setIsSubscribed(optimisticSubscribe);
+    setSubscribersCount((prev) => Math.max(0, prev + (optimisticSubscribe ? 1 : -1)));
+    try {
+      let result;
+      if (optimisticSubscribe) {
+        result = await subscribeToAuthor(profile.id);
+      } else {
+        result = await unsubscribeFromAuthor(profile.id);
+      }
+      if (result.success) {
+        setIsSubscribed(optimisticSubscribe);
+      } else {
+        throw new Error(result.error || "Failed to update subscription");
+      }
+    } catch (err) {
+      // revert on error
+      setIsSubscribed(!optimisticSubscribe);
+      setSubscribersCount((prev) => Math.max(0, prev + (optimisticSubscribe ? -1 : 1)));
+      setError(err.message || "Failed to update subscription");
+    } finally {
+      setSubscribeLoading(false);
     }
   };
 
@@ -151,6 +193,11 @@ const AuthorProfileView = () => {
                 <span className="text-sm font-semibold text-gray-700 font-nunito">
                   {followers} Followers
                 </span>
+                {subscribersCount > 0 && (
+                  <span className="text-sm font-semibold text-gray-700 font-nunito">
+                    {subscribersCount} Newsletter Subscribers
+                  </span>
+                )}
                 <div className="flex gap-2">
                   {socialLinks.map(
                     ({ icon: Icon, url }, idx) =>
@@ -170,23 +217,29 @@ const AuthorProfileView = () => {
               </div>
 
               <div className="flex flex-wrap gap-3">
-                {profile.newsletterUrl && (
-                  <a
-                    href={profile.newsletterUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-4 py-2 rounded-lg border border-gray-300 text-gray-800 font-semibold bg-white hover:bg-gray-50"
-                  >
-                    Subscribe to Newsletter
-                  </a>
-                )}
+                <button
+                  type="button"
+                  onClick={handleSubscribeToggle}
+                  disabled={subscribeLoading}
+                  className={`px-4 py-2 rounded-lg font-semibold ${
+                    isSubscribed
+                      ? "bg-gray-600 text-white hover:bg-gray-700"
+                      : "bg-[#5A7C65] text-white hover:bg-[#4a6b55]"
+                  } disabled:opacity-70 font-nunito`}
+                >
+                  {subscribeLoading
+                    ? "Updating..."
+                    : isSubscribed
+                    ? "Subscribed"
+                    : "Subscribe to Newsletter"}
+                </button>
                 <button
                   type="button"
                   onClick={handleFollowToggle}
                   disabled={followLoading}
                   className={`px-5 py-2 rounded-lg text-white font-semibold ${
                     isFollowing ? "bg-gray-700" : "bg-[#074B03]"
-                  } hover:opacity-90 disabled:opacity-70`}
+                  } hover:opacity-90 disabled:opacity-70 font-nunito`}
                 >
                   {followLoading
                     ? "Updating..."

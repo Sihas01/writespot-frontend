@@ -2,12 +2,14 @@ import React from 'react';
 import { RiHome5Line } from "react-icons/ri";
 import { GoBook } from "react-icons/go";
 import { MdOutlineStorefront } from "react-icons/md";
+import { FiSettings } from "react-icons/fi";
 
 const Navigation = ({ activeTab, onTabChange, isSticky }) => {
   const navItems = [
     { id: 'home', label: 'Home', icon: RiHome5Line },
     { id: 'store', label: 'Store', icon: MdOutlineStorefront },
     { id: 'library', label: 'Library', icon: GoBook },
+    { id: 'settings', label: 'Settings', icon: FiSettings },
     // { id: 'revenue', label: 'Revenue', icon: CiViewList }
   ];
 
