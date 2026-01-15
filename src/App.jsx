@@ -25,6 +25,8 @@ import Library from "./pages/Library";
 import EPubReader from "./pages/EPubReader";
 import AuthorProfileForm from "./pages/AuthorProfileForm";
 import AuthorProfileView from "./pages/AuthorProfileView";
+import Settings from "./pages/Settings";
+import Unsubscribe from "./pages/Unsubscribe";
 
 
 import AdminDashboard from "./pages/AdminDashboard";
@@ -80,6 +82,7 @@ function App() {
             <Route path="store" element={<Store />} />
             <Route path="store/:bookId" element={<BookDetail />} />
             <Route path="library" element={<Library />} />
+            <Route path="settings" element={<Settings />} />
             <Route path="checkout" element={<Checkout />} />
             <Route path="thank-you" element={<ThankYou />} />
             <Route path="payment-failed" element={<PaymentFailed />} />
@@ -93,6 +96,8 @@ function App() {
           />
 
           <Route path="/author/:id" element={<AuthorProfileView />} />
+
+          <Route path="/unsubscribe/:token" element={<Unsubscribe />} />
 
           <Route path="*" element={<NotFound />} />
 
