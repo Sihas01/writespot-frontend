@@ -2,7 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FiShoppingBag, FiShoppingCart, FiPlay } from "react-icons/fi";
-import { AiFillStar } from "react-icons/ai";
+import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import banner from "../assets/images/banner.png";
 import { useCart } from "../context/CartContext";
 
@@ -374,9 +374,8 @@ const Store = () => {
                                                 className="focus:outline-none"
                                             >
                                                 <span
-                                                    className={`text-xl ${
-                                                        active ? "text-yellow-500" : "text-gray-300"
-                                                    }`}
+                                                    className={`text-xl ${active ? "text-yellow-500" : "text-gray-300"
+                                                        }`}
                                                 >
                                                     ★
                                                 </span>
@@ -421,11 +420,10 @@ const Store = () => {
 
             {cartStatus.message && (
                 <div
-                    className={`mt-3 px-4 py-3 rounded-lg border font-nunito ${
-                        cartStatus.type === "success"
-                            ? "bg-green-50 text-green-700 border-green-200"
-                            : "bg-red-50 text-red-700 border-red-200"
-                    }`}
+                    className={`mt-3 px-4 py-3 rounded-lg border font-nunito ${cartStatus.type === "success"
+                        ? "bg-green-50 text-green-700 border-green-200"
+                        : "bg-red-50 text-red-700 border-red-200"
+                        }`}
                 >
                     {cartStatus.message}
                 </div>
@@ -485,7 +483,9 @@ const Store = () => {
 
                                         <div className="flex gap-1 text-yellow-500 text-lg leading-none">
                                             {Array.from({ length: 5 }).map((_, idx) => (
-                                                <AiFillStar key={idx} />
+                                                <span key={idx}>
+                                                    {idx < Math.round(book.rating || 0) ? <AiFillStar /> : <AiOutlineStar className="text-gray-300" />}
+                                                </span>
                                             ))}
                                         </div>
 
