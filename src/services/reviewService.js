@@ -20,6 +20,7 @@ export const submitReview = async (bookId, rating, reviewText) => {
     return {
       success: false,
       error: error.response?.data?.message || "Failed to submit review",
+      debugError: error.response?.data?.debugError
     };
   }
 };

@@ -40,6 +40,11 @@ const ReviewModal = ({ isOpen, onClose, bookId, existingReview, onReviewSubmitte
         onClose();
       } else {
         setError(result.error || "Failed to submit review");
+        if (result.debugError) {
+          console.error("Review Debug Error:", result.debugError);
+          // Optionally append to error message for visibility
+          setError(`${result.error} (Debug: ${result.debugError.toString().slice(0, 100)}...)`);
+        }
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
@@ -112,8 +117,9 @@ const ReviewModal = ({ isOpen, onClose, bookId, existingReview, onReviewSubmitte
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 text-red-700 border border-red-200">
-              {error}
+            <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 text-red-700 border border-red-200 text-sm">
+              <p className="font-bold">{error}</p>
+              {/* Show detailed debug info if available (parsed from error message if hidden, or explicit) */}
             </div>
           )}
 
