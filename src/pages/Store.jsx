@@ -487,21 +487,120 @@ const Store = () => {
                         {recommendedBooks.map((book) => {
                             const bookId = book._id || book.id;
                             const purchased = Boolean(book?.purchased || book?.isPurchased || ownedIds.has(bookId));
+                            const buyNowDisabled = actionLoading || buyNowId === bookId || purchased;
+
                             return (
-                                <Link
+                                <div
                                     key={bookId}
-                                    to={bookId ? `/reader/dashboard/store/${bookId}` : "#"}
-                                    className="p-4 rounded-xl flex flex-col shadow-sm bg-white hover:shadow-md transition-shadow border border-gray-100"
+                                    onClick={() => navigate(bookId ? `/reader/dashboard/store/${bookId}` : "#")}
+                                    className="p-4 rounded-xl flex flex-col shadow-sm bg-white hover:shadow-md transition-shadow cursor-pointer border border-gray-100"
                                 >
                                     <div className="relative">
-                                        <img src={book.coverUrl} alt={book.title} className="w-full h-48 object-contain rounded-lg" />
-                                        <div className="absolute top-2 right-2 bg-yellow-400 text-xs font-bold px-2 py-1 rounded shadow-sm text-gray-900">
-                                            {book.averageRating || book.rating || 0} ★
+                                        <img
+                                            src={book.coverUrl}
+                                            alt={book.title}
+                                            className="w-full max-h-48 object-contain rounded-lg"
+                                        />
+                                        {purchased && (
+                                            <span className="absolute top-2 right-2 bg-[#5A7C65] text-white text-xs font-semibold px-2 py-1 rounded-md">
+                                                Owned
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="flex flex-col mt-4 gap-2">
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-[16px] font-semibold font-nunito leading-snug">
+                                                {book.title}
+                                            </p>
+                                            {!purchased && (
+                                                <span className="text-sm font-semibold text-[#2E8B57]">
+                                                    {book.price ? `LKR ${book.price}` : "Free"}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <p className="font-light text-[14px] font-nunito text-gray-700">
+                                            {book.author?.firstName} {book.author?.lastName}
+                                        </p>
+
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <div className="flex gap-1 text-yellow-500 text-sm leading-none">
+                                                {Array.from({ length: 5 }).map((_, idx) => {
+                                                    const rating = book.averageRating || book.rating || 0;
+                                                    const fullStars = Math.floor(rating);
+                                                    const hasHalfStar = rating % 1 !== 0;
+
+                                                    return (
+                                                        <span key={idx}>
+                                                            {idx < fullStars ? (
+                                                                <FaStar />
+                                                            ) : idx === fullStars && hasHalfStar ? (
+                                                                <FaStarHalfAlt />
+                                                            ) : (
+                                                                <FaRegStar className="text-gray-300" />
+                                                            )}
+                                                        </span>
+                                                    );
+                                                })}
+                                            </div>
+                                            <span className="text-sm font-semibold text-gray-600 font-nunito pt-0.5">
+                                                {book.averageRating || book.rating || 0}
+                                            </span>
+
+                                            <div className="flex items-center gap-1 ml-3 text-sm">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => handleLike(e, book)}
+                                                    className="p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer relative z-20"
+                                                    title="Like this book"
+                                                >
+                                                    {book.isLiked ? (
+                                                        <FaHeart className="text-red-500 w-3.5 h-3.5" />
+                                                    ) : (
+                                                        <FaRegHeart className="text-gray-400 w-3.5 h-3.5" />
+                                                    )}
+                                                </button>
+                                                <span className="font-nunito text-xs pt-0.5 text-gray-500">{book.likesCount || 0}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 mt-2">
+                                            {purchased ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => handleReadNow(e, book)}
+                                                    disabled
+                                                    title="Reader coming soon"
+                                                    className="flex-1 flex items-center justify-center gap-2 bg-[#5A7C65] text-white px-3 py-2.5 rounded-lg text-[14px] font-semibold hover:opacity-90 disabled:opacity-80"
+                                                >
+                                                    <FiPlay className="w-4 h-4" />
+                                                    Read Now
+                                                </button>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => handleBuyNow(e, book)}
+                                                        disabled={buyNowDisabled}
+                                                        className="flex-1 flex items-center justify-center gap-2 border border-gray-200 rounded-lg px-3 py-2.5 text-[14px] font-semibold text-gray-800 hover:bg-gray-50 disabled:opacity-60"
+                                                    >
+                                                        <FiShoppingBag className="w-4 h-4" />
+                                                        Buy Now
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => handleAddToCart(e, book)}
+                                                        disabled={actionLoading || purchased}
+                                                        className="h-11 w-12 flex items-center justify-center rounded-lg bg-[#5A7C65] text-white hover:opacity-90 disabled:opacity-60"
+                                                    >
+                                                        <FiShoppingCart className="w-5 h-5" />
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
-                                    <h4 className="mt-3 font-bold text-gray-800 text-sm line-clamp-1">{book.title}</h4>
-                                    <p className="text-xs text-gray-500">{book.author?.firstName} {book.author?.lastName}</p>
-                                </Link>
+                                </div>
                             );
                         })}
                     </div>

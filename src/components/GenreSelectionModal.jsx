@@ -45,7 +45,8 @@ const GenreSelectionModal = ({ onClose, onSave }) => {
             onSave(selectedGenres);
         } catch (err) {
             console.error("Failed to save genres", err);
-            setError(err.response?.data?.msg || err.message || "Failed to save preferences. Please try again.");
+            const message = err.response?.data?.msg || err.response?.data?.message || err.message || "Failed to save preferences. Please try again.";
+            setError(message);
         } finally {
             setLoading(false);
         }
