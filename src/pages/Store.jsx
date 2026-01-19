@@ -482,7 +482,7 @@ const Store = () => {
 
             {recommendedBooks.length > 0 && (
                 <div className="mt-10 mb-8">
-                    <h3 className="font-nunito text-xl font-bold text-[#5A7C65] mb-4">Recommended For You</h3>
+                    <h3 className="font-nunito text-xl mb-4">Recommended For You</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                         {recommendedBooks.map((book) => {
                             const bookId = book._id || book.id;
