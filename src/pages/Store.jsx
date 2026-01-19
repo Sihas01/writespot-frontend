@@ -2,7 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FiShoppingBag, FiShoppingCart, FiPlay } from "react-icons/fi";
-import { AiFillStar, AiOutlineStar } from "react-icons/ai";
+import { FaStar, FaStarHalfAlt, FaRegStar, FaHeart, FaRegHeart } from "react-icons/fa";
 import banner from "../assets/images/banner.png";
 import { useCart } from "../context/CartContext";
 
@@ -10,6 +10,7 @@ const limit = 10;
 
 const Store = () => {
     const [books, setBooks] = useState([]);
+    const [recommendedBooks, setRecommendedBooks] = useState([]);
     const [filteredBooks, setFilteredBooks] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [suggestions, setSuggestions] = useState([]);
@@ -35,6 +36,30 @@ const Store = () => {
     const languages = ["Sinhala", "English", "Tamil"];
     const ratingLevels = [1, 2, 3, 4, 5];
 
+    // Fetch recommendations
+    useEffect(() => {
+        const fetchRecommendations = async () => {
+            const user = JSON.parse(localStorage.getItem("user"));
+            if (user?.preferredGenres?.length) {
+                try {
+                    const token = localStorage.getItem("token");
+                    const res = await axios.get(`${import.meta.env.VITE_API_URL}/books`, {
+                        params: {
+                            genre: user.preferredGenres.join(","),
+                            limit: 4
+                        },
+                        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+                    });
+                    const list = Array.isArray(res.data) ? res.data : res.data?.data || res.data?.books || [];
+                    setRecommendedBooks(list);
+                } catch (err) {
+                    console.error("Failed to fetch recommendations", err);
+                }
+            }
+        };
+        fetchRecommendations();
+    }, []);
+
     const fetchBooks = async ({ pageToLoad = 1, append = false } = {}) => {
         const token = localStorage.getItem("token");
         append ? setLoadingMore(true) : setLoading(true);
@@ -58,6 +83,14 @@ const Store = () => {
             setHasMore(list.length === limit);
             setPage(pageToLoad);
             setBooks((prev) => (append ? [...prev, ...list] : list));
+
+            // DEBUG ALERT
+            if (res.data?.debug && !append && pageToLoad === 1) {
+                const d = res.data.debug;
+                alert(`DEBUG: Found ${d.likedCount} likes. IDs: ${JSON.stringify(d.likedIds)}`);
+            }
+
+
         } catch (err) {
             setHasMore(false);
             setError(err?.response?.data?.msg || "Failed to load books");
@@ -257,6 +290,49 @@ const Store = () => {
         }
     };
 
+    const handleLike = async (e, book) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("Please login to like books");
+            return;
+        }
+
+        const bookId = book._id || book.id;
+        if (!bookId) return;
+
+        // Optimistic update function
+        const updateList = (list) => {
+            return list.map(b => {
+                const bId = b._id || b.id;
+                if (bId === bookId) {
+                    const isLiked = !b.isLiked;
+                    return {
+                        ...b,
+                        isLiked,
+                        likesCount: isLiked ? (b.likesCount || 0) + 1 : Math.max((b.likesCount || 0) - 1, 0)
+                    };
+                }
+                return b;
+            });
+        };
+
+        // Update local state immediately
+        setBooks(prev => updateList(prev));
+        setFilteredBooks(prev => updateList(prev));
+
+        try {
+            await axios.post(`${import.meta.env.VITE_API_URL}/likes/${bookId}`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+        } catch (err) {
+            console.error("Like failed", err);
+            // alert("Like failed to save. Please try again.");
+        }
+    };
+
     const handleReadNow = (event, book) => {
         event.preventDefault();
         event.stopPropagation();
@@ -409,6 +485,34 @@ const Store = () => {
                 )}
             </div>
 
+            {recommendedBooks.length > 0 && (
+                <div className="mt-10 mb-8">
+                    <h3 className="font-nunito text-xl font-bold text-[#5A7C65] mb-4">Recommended For You</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                        {recommendedBooks.map((book) => {
+                            const bookId = book._id || book.id;
+                            const purchased = Boolean(book?.purchased || book?.isPurchased || ownedIds.has(bookId));
+                            return (
+                                <Link
+                                    key={bookId}
+                                    to={bookId ? `/reader/dashboard/store/${bookId}` : "#"}
+                                    className="p-4 rounded-xl flex flex-col shadow-sm bg-white hover:shadow-md transition-shadow border border-gray-100"
+                                >
+                                    <div className="relative">
+                                        <img src={book.coverUrl} alt={book.title} className="w-full h-48 object-contain rounded-lg" />
+                                        <div className="absolute top-2 right-2 bg-yellow-400 text-xs font-bold px-2 py-1 rounded shadow-sm text-gray-900">
+                                            {book.averageRating || book.rating || 0} ★
+                                        </div>
+                                    </div>
+                                    <h4 className="mt-3 font-bold text-gray-800 text-sm line-clamp-1">{book.title}</h4>
+                                    <p className="text-xs text-gray-500">{book.author?.firstName} {book.author?.lastName}</p>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
             <h3 className="mt-10 font-nunito text-xl">New Arrival</h3>
             <p className="font-nunito font-light">Explore our latest collection of books</p>
 
@@ -447,10 +551,10 @@ const Store = () => {
                                 actionLoading || buyNowId === bookId || purchased;
 
                             return (
-                                <Link
+                                <div
                                     key={bookId}
-                                    to={bookId ? `/reader/dashboard/store/${bookId}` : "#"}
-                                    className="p-4 rounded-xl flex flex-col shadow-sm bg-white hover:shadow-md transition-shadow"
+                                    onClick={() => navigate(bookId ? `/reader/dashboard/store/${bookId}` : "#")}
+                                    className="p-4 rounded-xl flex flex-col shadow-sm bg-white hover:shadow-md transition-shadow cursor-pointer"
                                 >
                                     <div className="relative">
                                         <img
@@ -481,12 +585,46 @@ const Store = () => {
                                             {book.author?.firstName} {book.author?.lastName}
                                         </p>
 
-                                        <div className="flex gap-1 text-yellow-500 text-lg leading-none">
-                                            {Array.from({ length: 5 }).map((_, idx) => (
-                                                <span key={idx}>
-                                                    {idx < Math.round(book.rating || 0) ? <AiFillStar /> : <AiOutlineStar className="text-gray-300" />}
-                                                </span>
-                                            ))}
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <div className="flex gap-1 text-yellow-500 text-sm leading-none">
+                                                {Array.from({ length: 5 }).map((_, idx) => {
+                                                    const rating = book.averageRating || 0;
+                                                    const fullStars = Math.floor(rating);
+                                                    const hasHalfStar = rating % 1 !== 0;
+
+                                                    return (
+                                                        <span key={idx}>
+                                                            {idx < fullStars ? (
+                                                                <FaStar />
+                                                            ) : idx === fullStars && hasHalfStar ? (
+                                                                <FaStarHalfAlt />
+                                                            ) : (
+                                                                <FaRegStar className="text-gray-300" />
+                                                            )}
+                                                        </span>
+                                                    );
+                                                })}
+                                            </div>
+                                            <span className="text-sm font-semibold text-gray-600 font-nunito pt-0.5">
+                                                {book.averageRating || 0}
+                                            </span>
+
+
+                                            <div className="flex items-center gap-1 ml-3 text-sm">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => handleLike(e, book)}
+                                                    className="p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer relative z-20"
+                                                    title="Like this book"
+                                                >
+                                                    {book.isLiked ? (
+                                                        <FaHeart className="text-blue-500 w-3.5 h-3.5" />
+                                                    ) : (
+                                                        <FaRegHeart className="text-gray-400 w-3.5 h-3.5" />
+                                                    )}
+                                                </button>
+                                                <span className="font-nunito text-xs pt-0.5 text-gray-500">{book.likesCount || 0}</span>
+                                            </div>
                                         </div>
 
                                         <div className="flex items-center gap-3 mt-2">
@@ -524,7 +662,7 @@ const Store = () => {
                                             )}
                                         </div>
                                     </div>
-                                </Link>
+                                </div>
                             );
                         })}
                     </div>

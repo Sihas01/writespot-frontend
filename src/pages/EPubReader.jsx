@@ -13,7 +13,7 @@ const THEMES = {
 const FONT_SIZES = [
     { label: 'Small', value: '18px' },
     { label: 'Medium', value: '24px' },
-    { label: 'Large', value: '34px' } 
+    { label: 'Large', value: '34px' }
 ];
 
 const EPubReader = () => {
@@ -50,13 +50,13 @@ const EPubReader = () => {
                 'color': `${themeObj.text} !important`,
                 'font-family': '"Noto Sans Sinhala", sans-serif !important',
                 'font-size': `${size} !important`,
-                'line-height': '2.2 !important', 
+                'line-height': '2.2 !important',
                 'text-align': 'left !important',
                 'padding': '20px 40px !important',
                 'margin': '0 !important',
-                'overflow-x': 'hidden !important', 
-                '-ms-overflow-style': 'none !important', 
-                'scrollbar-width': 'none !important' 
+                'overflow-x': 'hidden !important',
+                '-ms-overflow-style': 'none !important',
+                'scrollbar-width': 'none !important'
             },
             'html': {
                 'overflow-x': 'hidden !important',
@@ -106,6 +106,8 @@ const EPubReader = () => {
         return () => clearTimeout(timer);
     }, [theme, fontSize]);
 
+    const saveTimeoutRef = useRef(null);
+
     useEffect(() => {
         const fetchBookData = async () => {
             try {
@@ -114,10 +116,35 @@ const EPubReader = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setBookData(res.data);
+                if (res.data.readingProgress?.cfi) {
+                    setLocation(res.data.readingProgress.cfi);
+                }
             } catch (err) { console.error(err); } finally { setLoading(false); }
         };
         fetchBookData();
     }, [bookId]);
+
+    const handleLocationChange = (loc) => {
+        setLocation(loc);
+
+        if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+
+        saveTimeoutRef.current = setTimeout(async () => {
+            try {
+                const token = localStorage.getItem('token');
+                // Calculate percentage if possible, or just send CFI
+                // React-reader creates cfi, percentage is hard to get without rendition
+                // We'll trust the backend to handle it or just send CFI
+                await axios.put(
+                    `${import.meta.env.VITE_API_URL}/books/${bookId}/progress`,
+                    { cfi: loc, percentage: 0 }, // TODO: Calculate percentage
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+            } catch (error) {
+                console.error("Failed to save progress", error);
+            }
+        }, 1000); // Save after 1 second of no changes
+    };
 
     if (loading) return <div className="h-screen flex items-center justify-center bg-white">Loading...</div>;
 
@@ -126,8 +153,8 @@ const EPubReader = () => {
     return (
         <div className="flex h-screen flex-col overflow-hidden transition-colors duration-300" style={{ backgroundColor: currentTheme.bg }}>
             {/* Header */}
-            <div className="z-20 flex items-center justify-between border-b px-6 py-4" 
-                 style={{ backgroundColor: currentTheme.bg, color: currentTheme.text, borderColor: theme === 'dark' ? '#333' : '#eee' }}>
+            <div className="z-20 flex items-center justify-between border-b px-6 py-4"
+                style={{ backgroundColor: currentTheme.bg, color: currentTheme.text, borderColor: theme === 'dark' ? '#333' : '#eee' }}>
                 <div className="flex items-center gap-4">
                     <button onClick={() => navigate(-1)} className="p-1 hover:bg-black/5 rounded-full"><IoArrowBack size={24} /></button>
                     <span className="font-semibold">{bookData.title}</span>
@@ -141,7 +168,7 @@ const EPubReader = () => {
                     <ReactReader
                         url={bookData.epubUrl}
                         location={location}
-                        locationChanged={(loc) => setLocation(loc)}
+                        locationChanged={handleLocationChange}
                         getRendition={(rendition) => {
                             renditionRef.current = rendition;
                             rendition.hooks.content.register(injectStyles);
@@ -149,9 +176,9 @@ const EPubReader = () => {
                         styles={{
                             container: { background: 'transparent' },
                             reader: { background: 'transparent' },
-                            viewer: { 
-                                background: 'transparent', 
-                                overflowX: 'hidden' 
+                            viewer: {
+                                background: 'transparent',
+                                overflowX: 'hidden'
                             }
                         }}
                         epubOptions={{
@@ -174,11 +201,11 @@ const EPubReader = () => {
                             <p className="text-xs text-gray-400 font-bold mb-3 uppercase tracking-widest">Theme</p>
                             <div className="flex gap-3">
                                 {Object.keys(THEMES).map(t => (
-                                    <button 
-                                        key={t} 
-                                        onClick={() => setTheme(t)} 
-                                        className={`h-12 flex-1 rounded-xl border-2 transition-all ${theme === t ? 'border-blue-500 scale-105 shadow-md' : 'border-gray-100 hover:border-gray-200'}`} 
-                                        style={{ backgroundColor: THEMES[t].bg }} 
+                                    <button
+                                        key={t}
+                                        onClick={() => setTheme(t)}
+                                        className={`h-12 flex-1 rounded-xl border-2 transition-all ${theme === t ? 'border-blue-500 scale-105 shadow-md' : 'border-gray-100 hover:border-gray-200'}`}
+                                        style={{ backgroundColor: THEMES[t].bg }}
                                     />
                                 ))}
                             </div>
@@ -187,9 +214,9 @@ const EPubReader = () => {
                             <p className="text-xs text-gray-400 font-bold mb-3 uppercase tracking-widest">Text Size</p>
                             <div className="flex rounded-xl bg-gray-100 p-1">
                                 {FONT_SIZES.map(s => (
-                                    <button 
-                                        key={s.value} 
-                                        onClick={() => setFontSize(s.value)} 
+                                    <button
+                                        key={s.value}
+                                        onClick={() => setFontSize(s.value)}
                                         className={`flex-1 py-2 text-sm rounded-lg transition-all ${fontSize === s.value ? 'bg-white shadow-sm font-bold text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                                     >
                                         {s.label}
