@@ -84,11 +84,6 @@ const Store = () => {
             setPage(pageToLoad);
             setBooks((prev) => (append ? [...prev, ...list] : list));
 
-            // DEBUG ALERT
-            if (res.data?.debug && !append && pageToLoad === 1) {
-                const d = res.data.debug;
-                alert(`DEBUG: Found ${d.likedCount} likes. IDs: ${JSON.stringify(d.likedIds)}`);
-            }
 
 
         } catch (err) {
@@ -324,7 +319,7 @@ const Store = () => {
         setFilteredBooks(prev => updateList(prev));
 
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/likes/${bookId}`, {}, {
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/likes/${bookId}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
         } catch (err) {
@@ -618,7 +613,7 @@ const Store = () => {
                                                     title="Like this book"
                                                 >
                                                     {book.isLiked ? (
-                                                        <FaHeart className="text-blue-500 w-3.5 h-3.5" />
+                                                        <FaHeart className="text-red-500 w-3.5 h-3.5" />
                                                     ) : (
                                                         <FaRegHeart className="text-gray-400 w-3.5 h-3.5" />
                                                     )}

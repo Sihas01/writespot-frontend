@@ -168,7 +168,7 @@ const BookDetail = () => {
     }));
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/likes/${resolvedBookId}`, {}, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/likes/${resolvedBookId}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -366,7 +366,7 @@ const BookDetail = () => {
               aria-label="Toggle like"
             >
               {book.isLiked ? (
-                <FaHeart className="w-5 h-5 pointer-events-none" style={{ color: '#3b82f6' }} />
+                <FaHeart className="w-5 h-5 pointer-events-none" style={{ color: '#ef4444' }} />
               ) : (
                 <FaRegHeart className="w-5 h-5 pointer-events-none" style={{ color: '#9ca3af' }} />
               )}
