@@ -23,7 +23,7 @@ const EPubReader = () => {
     const [bookData, setBookData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [theme, setTheme] = useState('normal');
-    const [fontSize, setFontSize] = useState('24px');
+    const [fontSize, setFontSize] = useState('18px');
     const [showSettings, setShowSettings] = useState(false);
 
     const renditionRef = useRef(null);
