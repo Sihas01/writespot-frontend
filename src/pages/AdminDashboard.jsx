@@ -71,8 +71,21 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleToggleStatus = async (id, currentStatus) => {
+        const newStatus = currentStatus === "suspended" ? "active" : "suspended";
+        if (!window.confirm(`Are you sure you want to ${newStatus === "suspended" ? "suspend" : "activate"} this user?`)) return;
+        try {
+            await axios.put(`${apiBase}/api/admin/users/${id}/status`, { status: newStatus }, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            fetchUsers(currentPage);
+        } catch (err) {
+            alert(err.response?.data?.message || "Failed to update user status");
+        }
+    };
+
     const handleDeleteUser = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this user?")) return;
+        if (!window.confirm("Are you sure you want to delete this user? This action is permanent!")) return;
         try {
             await axios.delete(`${apiBase}/api/admin/users/${id}`, {
                 headers: { Authorization: `Bearer ${token}` },
@@ -132,7 +145,7 @@ const AdminDashboard = () => {
             <div className="px-4 lg:px-32 py-8 space-y-8">
 
                 {/* Stats Cards */}
-                <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                         <p className="text-gray-500 text-sm">Total Users</p>
                         <p className="text-2xl font-bold text-gray-800">{stats.users}</p>
@@ -145,10 +158,7 @@ const AdminDashboard = () => {
                         <p className="text-gray-500 text-sm">Books Published</p>
                         <p className="text-2xl font-bold text-gray-800">{stats.books}</p>
                     </div>
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                        <p className="text-gray-500 text-sm">Total Revenue</p>
-                        <p className="text-2xl font-bold text-gray-800">LKR {stats.revenue}</p>
-                    </div>
+
                 </section>
 
                 {/* Tabs */}
@@ -216,6 +226,7 @@ const AdminDashboard = () => {
                                             <th className="px-6 py-4 font-medium">Name</th>
                                             <th className="px-6 py-4 font-medium">Email</th>
                                             <th className="px-6 py-4 font-medium">Role</th>
+                                            <th className="px-6 py-4 font-medium">Status</th>
                                             <th className="px-6 py-4 font-medium text-right">Actions</th>
                                         </>
                                     ) : activeTab === "books" ? (
@@ -269,14 +280,29 @@ const AdminDashboard = () => {
                                                 {user.role}
                                             </span>
                                         </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-2 py-1 rounded text-xs font-semibold ${user.status === 'suspended' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                                                {user.status || 'active'}
+                                            </span>
+                                        </td>
                                         <td className="px-6 py-4 text-right">
                                             {user.role !== "admin" && (
-                                                <button
-                                                    onClick={() => handleDeleteUser(user._id)}
-                                                    className="text-red-500 hover:text-red-700 text-sm font-medium"
-                                                >
-                                                    Delete
-                                                </button>
+                                                <div className="flex justify-end gap-2">
+                                                    <select
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            if (val === "status") handleToggleStatus(user._id, user.status);
+                                                            if (val === "delete") handleDeleteUser(user._id);
+                                                            e.target.value = ""; // Reset dropdown
+                                                        }}
+                                                        className="text-sm border border-gray-200 rounded px-2 py-1 bg-white hover:border-gray-300 outline-none"
+                                                        defaultValue=""
+                                                    >
+                                                        <option value="" disabled>Actions</option>
+                                                        <option value="status">{user.status === 'suspended' ? 'Activate' : 'Suspend'}</option>
+                                                        <option value="delete">Delete</option>
+                                                    </select>
+                                                </div>
                                             )}
                                         </td>
                                     </tr>
