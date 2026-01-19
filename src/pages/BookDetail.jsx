@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
-import { FiHeart, FiShare2, FiShoppingCart, FiPlay, FiThumbsUp, FiFlag } from "react-icons/fi";
+import { FiShare2, FiShoppingCart, FiPlay, FiThumbsUp, FiFlag } from "react-icons/fi";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
 import ReviewModal from "../components/ReviewModal";
 import { getBookReviews, markHelpful, reportReview } from "../services/reviewService";
@@ -144,6 +145,52 @@ const BookDetail = () => {
     }
   };
 
+  const handleLike = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please login to like books");
+      return;
+    }
+
+    if (!resolvedBookId) {
+      alert("Error: Book ID not found");
+      return;
+    }
+
+    // Optimistic update
+    setBook(prev => ({
+      ...prev,
+      isLiked: !prev.isLiked,
+      likesCount: prev.isLiked ? prev.likesCount - 1 : prev.likesCount + 1
+    }));
+
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/likes/${resolvedBookId}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (res.data.success) {
+        // Sync with server response
+        setBook(prev => ({
+          ...prev,
+          isLiked: !!res.data.isLiked,
+          likesCount: res.data.likesCount
+        }));
+      } else {
+        console.error("Like failed:", res.data);
+        alert("Like failed to save: " + (res.data.message || "Unknown error"));
+        // We do NOT revert here to keep the UI blue as requested, but warn the user.
+      }
+    } catch (err) {
+      console.error("Like error", err);
+      // alert("Like failed: " + (err.response?.data?.message || err.message));
+      // We do NOT revert here to keep the UI blue as requested.
+    }
+  };
+
   const renderStars = () => {
     const rounded = Math.round(ratingValue);
     return Array.from({ length: 5 }).map((_, idx) =>
@@ -205,10 +252,10 @@ const BookDetail = () => {
           prev.map((review) =>
             review._id === reviewId
               ? {
-                  ...review,
-                  helpfulCount: result.data.helpfulCount,
-                  hasVoted: result.data.hasVoted,
-                }
+                ...review,
+                helpfulCount: result.data.helpfulCount,
+                hasVoted: result.data.hasVoted,
+              }
               : review
           )
         );
@@ -313,10 +360,16 @@ const BookDetail = () => {
           <div className="flex items-center gap-3 text-gray-500">
             <button
               type="button"
-              className="p-2 rounded-full hover:bg-gray-100"
-              aria-label="Save to wishlist"
+              onClick={(e) => handleLike(e)}
+              className="p-2 rounded-full hover:bg-gray-100 flex items-center gap-1 transition-colors cursor-pointer relative z-10"
+              style={{ pointerEvents: 'auto' }}
+              aria-label="Toggle like"
             >
-              <FiHeart className="w-5 h-5" />
+              {book.isLiked ? (
+                <FaHeart className="w-5 h-5 pointer-events-none" style={{ color: '#ef4444' }} />
+              ) : (
+                <FaRegHeart className="w-5 h-5 pointer-events-none" style={{ color: '#9ca3af' }} />
+              )}
             </button>
             <button
               type="button"
