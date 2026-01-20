@@ -7,22 +7,19 @@ function ContentStep({ formData, onChange, onBack, onNext }) {
     e.preventDefault();
 
     if (formData.manuscript) {
-    const uploadedFileType = formData.manuscript.name.split('.').pop().toLowerCase(); 
-    if (uploadedFileType !== formData.fileFormat) {
-      alert(`Selected file format (${formData.fileFormat}) does not match uploaded file type (${uploadedFileType}).`);
+      const uploadedFileType = formData.manuscript.name.split('.').pop().toLowerCase();
+      if (uploadedFileType !== 'docx') {
+        alert(`Only .docx files are allowed. You uploaded a .${uploadedFileType} file.`);
+        return;
+      }
+    } else {
+      alert('Please upload a manuscript file.');
       return;
     }
-  } else {
-    alert('Please upload a manuscript file.');
-    return;
-  }
     onNext();
   };
 
   const formatOptions = [
-    { value: 'pdf', label: 'PDF' },
-    { value: 'epub', label: 'EPUB' },
-    { value: 'mobi', label: 'MOBI' },
     { value: 'docx', label: 'DOCX' }
   ];
 
@@ -30,15 +27,15 @@ function ContentStep({ formData, onChange, onBack, onNext }) {
     <form onSubmit={handleSubmit}>
       <h2 className="text-2xl font-nunito font-semibold text-gray-800 mb-8">eBook Content</h2>
 
-      
+
 
       <div className="space-y-6">
-         <FileUpload
+        <FileUpload
           label="Cover Image"
           name="coverImage"
           onChange={onChange}
           accept="image/*"
-          
+
           file={formData.coverImage}
         />
 
@@ -46,8 +43,8 @@ function ContentStep({ formData, onChange, onBack, onNext }) {
           label="Manuscript File"
           name="manuscript"
           onChange={onChange}
-          accept=".pdf,.epub,.mobi,.docx"
-          
+          accept=".docx"
+
           file={formData.manuscript}
         />
 
@@ -61,7 +58,7 @@ function ContentStep({ formData, onChange, onBack, onNext }) {
           required
         />
 
-       
+
       </div>
 
       <NavigationButtons onBack={onBack} onNext={onNext} showBack={true} />

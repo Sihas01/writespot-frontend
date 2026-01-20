@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { MdEdit, MdClose, MdDelete } from 'react-icons/md';
+import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 
 const AuthorDashboardAfter = () => {
     const [books, setBooks] = useState([]);
@@ -126,7 +127,7 @@ const AuthorDashboardAfter = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        
+
         if (name.includes('.')) {
             const [parent, child] = name.split('.');
             setFormData(prev => ({
@@ -193,6 +194,30 @@ const AuthorDashboardAfter = () => {
         setErrors({});
     };
 
+    const renderStars = (rating) => {
+        return (
+            <div className="flex items-center justify-center gap-1 text-yellow-500 text-sm">
+                {Array.from({ length: 5 }).map((_, idx) => {
+                    const fullStars = Math.floor(rating);
+                    const hasHalfStar = rating % 1 !== 0;
+
+                    return (
+                        <span key={idx}>
+                            {idx < fullStars ? (
+                                <FaStar />
+                            ) : idx === fullStars && hasHalfStar ? (
+                                <FaStarHalfAlt />
+                            ) : (
+                                <FaRegStar className="text-gray-300" />
+                            )}
+                        </span>
+                    );
+                })}
+                <span className="text-gray-600 ml-1 font-semibold">{rating || 0}</span>
+            </div>
+        );
+    };
+
     return (
         <div>
             <h2 className="text-2xl md:text-3xl font-nunito font-semibold text-[#5A7C65] mb-6">
@@ -229,47 +254,51 @@ const AuthorDashboardAfter = () => {
                 <table className="min-w-full bg-white border-0 text-center">
                     <thead>
                         <tr>
-                            <th className="px-8 py-4">Cover Page</th>
-                            <th className="px-8 py-4">Book Details</th>
-                            <th className="px-8 py-4">Views</th>
-                            <th className="px-8 py-4">Downloads</th>
+                            <th className="px-8 py-4 text-left">Cover Page</th>
+                            <th className="px-8 py-4 text-left">Book Details</th>
+                            <th className="px-8 py-4">Purchased Count</th>
                             <th className="px-8 py-4">Rating</th>
                             <th className="px-8 py-4">Like</th>
-                            <th className="px-8 py-4">Dislike</th>
                             <th className="px-8 py-4">Action</th>
                         </tr>
                     </thead>
 
                     <tbody>
                         {books.map((book) => (
-                            <tr key={book._id}>
-                                <td className="px-8 py-4 flex items-center justify-center">
+                            <tr key={book._id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                                <td className="px-8 py-6 flex items-center justify-center">
                                     {book.coverUrl ? (
                                         <img
                                             src={book.coverUrl}
                                             alt={book.title}
-                                            className="w-14 h-20 object-cover"
+                                            className="w-14 h-20 object-cover shadow-sm rounded"
                                         />
                                     ) : (
-                                        <span className="text-gray-400">No Cover</span>
+                                        <div className="w-14 h-20 bg-gray-100 flex items-center justify-center rounded text-[10px] text-gray-400">
+                                            No Cover
+                                        </div>
                                     )}
                                 </td>
-                                <td className="px-8 py-4 text-left">
-                                    <div className="font-semibold">{book.title}</div>
-                                    <div className="text-sm text-gray-600">
+                                <td className="px-8 py-6 text-left">
+                                    <div className="font-semibold text-gray-800">{book.title}</div>
+                                    <div className="text-sm text-gray-500">
                                         {book.author?.firstName} {book.author?.lastName}
                                     </div>
                                 </td>
-                                <td className="px-8 py-4">250</td>
-                                <td className="px-8 py-4">250</td>
-                                <td className="px-8 py-4">5</td>
-                                <td className="px-8 py-4">100</td>
-                                <td className="px-8 py-4">02</td>
-                                <td className="px-8 py-4">
+                                <td className="px-8 py-6 font-semibold text-gray-700">
+                                    {book.purchasedCount || 0}
+                                </td>
+                                <td className="px-8 py-6">
+                                    {renderStars(book.averageRating)}
+                                </td>
+                                <td className="px-8 py-6 font-semibold text-gray-700">
+                                    {book.likesCount || 0}
+                                </td>
+                                <td className="px-8 py-6">
                                     <div className="flex items-center justify-center gap-4">
                                         <button
                                             onClick={() => handleEdit(book)}
-                                            className="text-[#5A7C65] hover:text-[#4a6555] font-medium inline-flex items-center gap-1 cursor-pointer"
+                                            className="text-[#5A7C65] hover:text-[#4a6555] font-medium inline-flex items-center gap-1 cursor-pointer transition-colors"
                                         >
                                             <MdEdit size={18} />
                                             Edit
@@ -277,7 +306,7 @@ const AuthorDashboardAfter = () => {
 
                                         <button
                                             onClick={() => handleDelete(book)}
-                                            className="text-[#f0300e] hover:text-[#f44e31] font-medium inline-flex items-center gap-1 cursor-pointer"
+                                            className="text-[#f0300e] hover:text-[#f44e31] font-medium inline-flex items-center gap-1 cursor-pointer transition-colors"
                                         >
                                             <MdDelete size={18} />
                                             Delete
@@ -324,9 +353,8 @@ const AuthorDashboardAfter = () => {
                                                 name="author.firstName"
                                                 value={formData.author.firstName}
                                                 onChange={handleInputChange}
-                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
-                                                    errors.firstName ? 'border-red-500' : 'border-gray-200'
-                                                }`}
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${errors.firstName ? 'border-red-500' : 'border-gray-200'
+                                                    }`}
                                             />
                                             {errors.firstName && (
                                                 <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
@@ -341,9 +369,8 @@ const AuthorDashboardAfter = () => {
                                                 name="author.lastName"
                                                 value={formData.author.lastName}
                                                 onChange={handleInputChange}
-                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
-                                                    errors.lastName ? 'border-red-500' : 'border-gray-200'
-                                                }`}
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${errors.lastName ? 'border-red-500' : 'border-gray-200'
+                                                    }`}
                                             />
                                             {errors.lastName && (
                                                 <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
@@ -365,9 +392,8 @@ const AuthorDashboardAfter = () => {
                                                 name="title"
                                                 value={formData.title}
                                                 onChange={handleInputChange}
-                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
-                                                    errors.title ? 'border-red-500' : 'border-gray-200'
-                                                }`}
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${errors.title ? 'border-red-500' : 'border-gray-200'
+                                                    }`}
                                             />
                                             {errors.title && (
                                                 <p className="text-red-500 text-sm mt-1">{errors.title}</p>
@@ -396,9 +422,8 @@ const AuthorDashboardAfter = () => {
                                                 value={formData.description}
                                                 onChange={handleInputChange}
                                                 rows="4"
-                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all resize-none ${
-                                                    errors.description ? 'border-red-500' : 'border-gray-200'
-                                                }`}
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all resize-none ${errors.description ? 'border-red-500' : 'border-gray-200'
+                                                    }`}
                                             />
                                             {errors.description && (
                                                 <p className="text-red-500 text-sm mt-1">{errors.description}</p>
@@ -454,9 +479,8 @@ const AuthorDashboardAfter = () => {
                                                 value={formData.keywords.join(', ')}
                                                 onChange={handleKeywordsChange}
                                                 placeholder="thriller, mystery, adventure"
-                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
-                                                    errors.keywords ? 'border-red-500' : 'border-gray-200'
-                                                }`}
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${errors.keywords ? 'border-red-500' : 'border-gray-200'
+                                                    }`}
                                             />
                                             {errors.keywords && (
                                                 <p className="text-red-500 text-sm mt-1">{errors.keywords}</p>
@@ -480,9 +504,8 @@ const AuthorDashboardAfter = () => {
                                                 onChange={handleInputChange}
                                                 min="0"
                                                 step="0.01"
-                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
-                                                    errors.price ? 'border-red-500' : 'border-gray-200'
-                                                }`}
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${errors.price ? 'border-red-500' : 'border-gray-200'
+                                                    }`}
                                             />
                                             {errors.price && (
                                                 <p className="text-red-500 text-sm mt-1">{errors.price}</p>
@@ -500,9 +523,8 @@ const AuthorDashboardAfter = () => {
                                                 onChange={handleInputChange}
                                                 min="0"
                                                 max="100"
-                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
-                                                    errors.discount ? 'border-red-500' : 'border-gray-200'
-                                                }`}
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${errors.discount ? 'border-red-500' : 'border-gray-200'
+                                                    }`}
                                             />
                                             {errors.discount && (
                                                 <p className="text-red-500 text-sm mt-1">{errors.discount}</p>
@@ -519,9 +541,7 @@ const AuthorDashboardAfter = () => {
                                                 onChange={handleInputChange}
                                                 className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all"
                                             >
-                                                <option value="pdf">PDF</option>
-                                                <option value="epub">EPUB</option>
-                                                <option value="mobi">MOBI</option>
+                                                <option value="docx">DOCX</option>
                                             </select>
                                         </div>
                                     </div>
@@ -536,9 +556,8 @@ const AuthorDashboardAfter = () => {
                                             value={formData.isbn}
                                             onChange={handleInputChange}
                                             placeholder="978-3-16-148410-0"
-                                            className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
-                                                errors.isbn ? 'border-red-500' : 'border-gray-200'
-                                            }`}
+                                            className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${errors.isbn ? 'border-red-500' : 'border-gray-200'
+                                                }`}
                                         />
                                         {errors.isbn && (
                                             <p className="text-red-500 text-sm mt-1">{errors.isbn}</p>
