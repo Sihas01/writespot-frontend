@@ -4,13 +4,15 @@ import Header from '../components/AuthorDashboard/Header';
 import Navigation from '../components/AuthorDashboard/Navigation';
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import axios from 'axios';
+import ManuscriptNoticeModal from '../components/AuthorDashboard/publishing/ManuscriptNoticeModal';
 
 
 const AuthorDashboard = () => {
-   const [showHeader, setShowHeader] = useState(true);
+  const [showHeader, setShowHeader] = useState(true);
   const [isNavSticky, setIsNavSticky] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [hasBooks, setHasBooks] = useState(null);
+  const [showManuscriptNotice, setShowManuscriptNotice] = useState(false);
   const user = JSON.parse(localStorage.getItem('user'));
   const userName = user?.name;
 
@@ -35,7 +37,7 @@ const AuthorDashboard = () => {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       // Determine if scrolling down or up
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
         // Scrolling down
@@ -53,38 +55,53 @@ const AuthorDashboard = () => {
           setIsNavSticky(true);
         }
       }
-      
+
       setLastScrollY(currentScrollY);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [lastScrollY]);
 
-   const navigate = useNavigate();
-const location = useLocation();
-const currentTab = location.pathname.split("/").pop() || "home";
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentTab = location.pathname.split("/").pop() || "home";
 
 
   const handleTabChange = (tab) => {
-    navigate(`/dashboard/${tab}`);
+    if (tab === 'publications') {
+      setShowManuscriptNotice(true);
+    } else {
+      navigate(`/dashboard/${tab}`);
+    }
+  };
+
+  const handleProceedPublishing = () => {
+    setShowManuscriptNotice(false);
+    navigate('/dashboard/publications');
   };
 
   return (
-   <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       <Header username={userName.split(" ")[0]} isVisible={showHeader} />
-      <Navigation 
-        activeTab={currentTab} 
+      <Navigation
+        activeTab={currentTab}
         onTabChange={handleTabChange}
         isSticky={isNavSticky}
       />
-      
+
       <main className={`px-4 lg:px-32 mx-auto py-6 ${isNavSticky ? 'mt-16' : ''}`}>
-        <Outlet context={{ hasBooks }} /> 
+        <Outlet context={{ hasBooks }} />
       </main>
+
+      <ManuscriptNoticeModal
+        isOpen={showManuscriptNotice}
+        onClose={() => setShowManuscriptNotice(false)}
+        onProceed={handleProceedPublishing}
+      />
     </div>
   );
 };
