@@ -29,7 +29,7 @@ const PublishingPage = () => {
 
     // Content
     manuscript: null,
-    fileFormat: '',
+    fileFormat: 'docx',
 
 
     // Pricing
@@ -174,8 +174,8 @@ const PublishingPage = () => {
           language: '', title: '', subtitle: '', authorFirstName: '',
           authorLastName: '', isbn: '',
           description: '', genre: '', keywords: '', coverImage: null,
-          manuscript: null, fileFormat: '',
-          price: '', discount: '',drmEnabled: false
+          manuscript: null, fileFormat: 'docx',
+          price: '', discount: '', drmEnabled: false
         });
         setCurrentStep(0);
       }, 2000);

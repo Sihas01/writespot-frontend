@@ -29,7 +29,7 @@ const ManuscriptNoticeModal = ({ isOpen, onClose, onProceed }) => {
                             </p>
                             <ul className="list-disc pl-6 space-y-2">
                                 <li>
-                                    File format must be <span className="font-bold text-gray-800">.docx</span>
+                                    Only <span className="font-bold text-gray-800">.docx</span> format is allowed
                                 </li>
                                 <li>
                                     Content must use a <span className="font-bold text-gray-800">Unicode font</span>

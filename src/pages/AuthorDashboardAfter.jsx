@@ -126,7 +126,7 @@ const AuthorDashboardAfter = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        
+
         if (name.includes('.')) {
             const [parent, child] = name.split('.');
             setFormData(prev => ({
@@ -324,9 +324,8 @@ const AuthorDashboardAfter = () => {
                                                 name="author.firstName"
                                                 value={formData.author.firstName}
                                                 onChange={handleInputChange}
-                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
-                                                    errors.firstName ? 'border-red-500' : 'border-gray-200'
-                                                }`}
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${errors.firstName ? 'border-red-500' : 'border-gray-200'
+                                                    }`}
                                             />
                                             {errors.firstName && (
                                                 <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
@@ -341,9 +340,8 @@ const AuthorDashboardAfter = () => {
                                                 name="author.lastName"
                                                 value={formData.author.lastName}
                                                 onChange={handleInputChange}
-                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
-                                                    errors.lastName ? 'border-red-500' : 'border-gray-200'
-                                                }`}
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${errors.lastName ? 'border-red-500' : 'border-gray-200'
+                                                    }`}
                                             />
                                             {errors.lastName && (
                                                 <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
@@ -365,9 +363,8 @@ const AuthorDashboardAfter = () => {
                                                 name="title"
                                                 value={formData.title}
                                                 onChange={handleInputChange}
-                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
-                                                    errors.title ? 'border-red-500' : 'border-gray-200'
-                                                }`}
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${errors.title ? 'border-red-500' : 'border-gray-200'
+                                                    }`}
                                             />
                                             {errors.title && (
                                                 <p className="text-red-500 text-sm mt-1">{errors.title}</p>
@@ -396,9 +393,8 @@ const AuthorDashboardAfter = () => {
                                                 value={formData.description}
                                                 onChange={handleInputChange}
                                                 rows="4"
-                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all resize-none ${
-                                                    errors.description ? 'border-red-500' : 'border-gray-200'
-                                                }`}
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all resize-none ${errors.description ? 'border-red-500' : 'border-gray-200'
+                                                    }`}
                                             />
                                             {errors.description && (
                                                 <p className="text-red-500 text-sm mt-1">{errors.description}</p>
@@ -454,9 +450,8 @@ const AuthorDashboardAfter = () => {
                                                 value={formData.keywords.join(', ')}
                                                 onChange={handleKeywordsChange}
                                                 placeholder="thriller, mystery, adventure"
-                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
-                                                    errors.keywords ? 'border-red-500' : 'border-gray-200'
-                                                }`}
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${errors.keywords ? 'border-red-500' : 'border-gray-200'
+                                                    }`}
                                             />
                                             {errors.keywords && (
                                                 <p className="text-red-500 text-sm mt-1">{errors.keywords}</p>
@@ -480,9 +475,8 @@ const AuthorDashboardAfter = () => {
                                                 onChange={handleInputChange}
                                                 min="0"
                                                 step="0.01"
-                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
-                                                    errors.price ? 'border-red-500' : 'border-gray-200'
-                                                }`}
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${errors.price ? 'border-red-500' : 'border-gray-200'
+                                                    }`}
                                             />
                                             {errors.price && (
                                                 <p className="text-red-500 text-sm mt-1">{errors.price}</p>
@@ -500,9 +494,8 @@ const AuthorDashboardAfter = () => {
                                                 onChange={handleInputChange}
                                                 min="0"
                                                 max="100"
-                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
-                                                    errors.discount ? 'border-red-500' : 'border-gray-200'
-                                                }`}
+                                                className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${errors.discount ? 'border-red-500' : 'border-gray-200'
+                                                    }`}
                                             />
                                             {errors.discount && (
                                                 <p className="text-red-500 text-sm mt-1">{errors.discount}</p>
@@ -519,9 +512,7 @@ const AuthorDashboardAfter = () => {
                                                 onChange={handleInputChange}
                                                 className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all"
                                             >
-                                                <option value="pdf">PDF</option>
-                                                <option value="epub">EPUB</option>
-                                                <option value="mobi">MOBI</option>
+                                                <option value="docx">DOCX</option>
                                             </select>
                                         </div>
                                     </div>
@@ -536,9 +527,8 @@ const AuthorDashboardAfter = () => {
                                             value={formData.isbn}
                                             onChange={handleInputChange}
                                             placeholder="978-3-16-148410-0"
-                                            className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${
-                                                errors.isbn ? 'border-red-500' : 'border-gray-200'
-                                            }`}
+                                            className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A7C65] focus:border-transparent transition-all ${errors.isbn ? 'border-red-500' : 'border-gray-200'
+                                                }`}
                                         />
                                         {errors.isbn && (
                                             <p className="text-red-500 text-sm mt-1">{errors.isbn}</p>
