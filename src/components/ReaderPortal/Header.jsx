@@ -3,12 +3,14 @@ import { AiOutlineGlobal } from "react-icons/ai";
 import { RiUserLine } from "react-icons/ri";
 import { FiShoppingCart } from "react-icons/fi";
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 
 const Header = ({ username, isVisible }) => {
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
     const { cartCount, openCartPanel } = useCart();
+    const navigate = useNavigate();
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -39,7 +41,14 @@ const Header = ({ username, isVisible }) => {
     ${isVisible ? "translate-y-0" : "-translate-y-full"}`}
         >
             <div className="flex items-center justify-between">
-                <h1 className="font-inknut text-2xl text-[#074B03]">WriteSpot</h1>
+                <button
+                    type="button"
+                    onClick={() => navigate("/reader/dashboard")}
+                    className="font-inknut text-2xl text-[#074B03] hover:opacity-90"
+                    aria-label="WriteSpot home"
+                >
+                    WriteSpot
+                </button>
 
                 <div className="flex items-center gap-1 md:gap-4">
                     <button className="p-2 hover:bg-gray-100 rounded-full transition">

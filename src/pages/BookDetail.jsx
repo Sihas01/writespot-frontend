@@ -221,6 +221,12 @@ const BookDetail = () => {
     }
   };
 
+  const handleReadNow = () => {
+    if (resolvedBookId) {
+      navigate(`/reader/view/${resolvedBookId}`);
+    }
+  };
+
   const handleMarkHelpful = async (reviewId) => {
     setHelpfulLoading((prev) => ({ ...prev, [reviewId]: true }));
     try {
@@ -402,8 +408,7 @@ const BookDetail = () => {
               {purchased ? (
                 <button
                   type="button"
-                  disabled
-                  title="Reader coming soon"
+                  onClick={handleReadNow}
                   className="flex-1 flex items-center justify-center gap-2 bg-[#5A7C65] text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 disabled:opacity-80"
                 >
                   <FiPlay /> Read Now

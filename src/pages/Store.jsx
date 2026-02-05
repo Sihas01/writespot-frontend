@@ -13,6 +13,7 @@ const Store = () => {
     const [recommendedBooks, setRecommendedBooks] = useState([]);
     const [filteredBooks, setFilteredBooks] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
     const [suggestions, setSuggestions] = useState([]);
     const [isFocused, setIsFocused] = useState(false);
     const [recentSearches, setRecentSearches] = useState(
@@ -33,7 +34,11 @@ const Store = () => {
     const navigate = useNavigate();
 
     const genres = ["Fiction", "Non-Fiction", "Poetry", "Biography", "Education"];
-    const languages = ["Sinhala", "English", "Tamil"];
+    const languages = [
+        { label: "Sinhala", value: "sm" },
+        { label: "English", value: "en" },
+        { label: "Tamil", value: "ta" },
+    ];
     const ratingLevels = [1, 2, 3, 4, 5];
 
     // Fetch recommendations
@@ -60,16 +65,17 @@ const Store = () => {
         fetchRecommendations();
     }, []);
 
-    const fetchBooks = async ({ pageToLoad = 1, append = false } = {}) => {
+    const fetchBooks = async ({ pageToLoad = 1, append = false, query = searchTerm } = {}) => {
         const token = localStorage.getItem("token");
         append ? setLoadingMore(true) : setLoading(true);
         setError("");
 
         try {
-            const params = { page: pageToLoad, limit };
+            const params = { page: pageToLoad, limit, sort: "createdAtDesc" };
             if (filters.genre) params.genre = filters.genre;
             if (filters.language) params.language = filters.language;
-            if (filters.minRating) params.minRating = filters.minRating;
+            if (filters.minRating) params.ratingMin = filters.minRating;
+            if (query) params.search = query;
 
             const res = await axios.get(`${import.meta.env.VITE_API_URL}/books`, {
                 params,
@@ -88,7 +94,11 @@ const Store = () => {
 
         } catch (err) {
             setHasMore(false);
-            setError(err?.response?.data?.msg || "Failed to load books");
+            setError(
+                err?.response?.data?.message ||
+                err?.response?.data?.msg ||
+                "Failed to load books"
+            );
         } finally {
             setLoading(false);
             setLoadingMore(false);
@@ -96,9 +106,10 @@ const Store = () => {
     };
 
     useEffect(() => {
-        fetchBooks({ pageToLoad: 1, append: false });
+        fetchBooks({ pageToLoad: 1, append: false, query: searchTerm });
+        setHasMore(true);
         setPage(1);
-    }, [filters]);
+    }, [filters, searchTerm]);
 
     useEffect(() => {
         const fetchOwnedBooks = async () => {
@@ -126,70 +137,63 @@ const Store = () => {
     }, []);
 
     useEffect(() => {
-        if (!searchQuery.trim()) {
-            setFilteredBooks(books);
+        setFilteredBooks(books);
+    }, [books]);
+
+    useEffect(() => {
+        if (!isFocused || !searchQuery.trim()) {
+            setSuggestions([]);
             return;
         }
 
-        const lower = searchQuery.toLowerCase();
-        const result = books.filter(
-            (book) =>
-                book.title?.toLowerCase().includes(lower) ||
-                `${book.author?.firstName || ""} ${book.author?.lastName || ""}`
-                    .toLowerCase()
-                    .includes(lower)
-        );
-        setFilteredBooks(result);
-    }, [books, searchQuery]);
+        const timeout = setTimeout(async () => {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.get(`${import.meta.env.VITE_API_URL}/books`, {
+                    params: { search: searchQuery, limit: 6 },
+                    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+                });
+                const list = Array.isArray(res.data)
+                    ? res.data
+                    : res.data?.data || res.data?.books || [];
+                setSuggestions(list);
+            } catch (err) {
+                setSuggestions([]);
+            }
+        }, 250);
+
+        return () => clearTimeout(timeout);
+    }, [searchQuery, isFocused]);
 
     const handleSearchChange = (value) => {
         setSearchQuery(value);
 
         if (!value.trim()) {
             setSuggestions([]);
-            setFilteredBooks(books);
             return;
         }
+    };
 
-        const lower = value.toLowerCase();
-        const matches = books.filter(
-            (book) =>
-                book.title?.toLowerCase().includes(lower) ||
-                `${book.author?.firstName || ""} ${book.author?.lastName || ""}`
-                    .toLowerCase()
-                    .includes(lower)
-        );
-
-        setSuggestions(matches.slice(0, 6));
+    const applySearch = (term) => {
+        const trimmed = term.trim();
+        setSearchQuery(trimmed);
+        setSearchTerm(trimmed);
+        if (trimmed) {
+            saveRecent(trimmed);
+        }
+        setSuggestions([]);
+        setHasMore(true);
+        setPage(1);
     };
 
     const handleSuggestionClick = (book) => {
-        setSearchQuery(book.title);
-        saveRecent(book.title);
-
-        const results = books.filter((b) =>
-            b.title?.toLowerCase().includes(book.title.toLowerCase())
-        );
-
-        setSuggestions([]);
-        setFilteredBooks(results);
+        const title = book.title || "";
+        applySearch(title);
     };
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
-
-        const lower = searchQuery.toLowerCase();
-        const result = books.filter(
-            (book) =>
-                book.title?.toLowerCase().includes(lower) ||
-                `${book.author?.firstName || ""} ${book.author?.lastName || ""}`
-                    .toLowerCase()
-                    .includes(lower)
-        );
-
-        saveRecent(searchQuery);
-        setSuggestions([]);
-        setFilteredBooks(result);
+        applySearch(searchQuery);
     };
 
     const saveRecent = (query) => {
@@ -203,6 +207,7 @@ const Store = () => {
         setFilters({ ...pendingFilters });
         setSearchQuery("");
         setSuggestions([]);
+        setSearchTerm("");
         setHasMore(true);
         setPage(1);
         setIsFilterOpen(false);
@@ -214,6 +219,7 @@ const Store = () => {
         setFilters(reset);
         setSearchQuery("");
         setSuggestions([]);
+        setSearchTerm("");
         setHasMore(true);
         setPage(1);
         setIsFilterOpen(false);
@@ -233,6 +239,28 @@ const Store = () => {
         const nextPage = page + 1;
         fetchBooks({ pageToLoad: nextPage, append: true });
     };
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (!hasMore || loadingMore || loading) return;
+
+            const bottomOffset = 300;
+            const scrolledToBottom =
+                window.innerHeight + window.scrollY >=
+                document.documentElement.scrollHeight - bottomOffset;
+
+            if (scrolledToBottom) {
+                handleLoadMore();
+            }
+        };
+
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        handleScroll();
+
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, [hasMore, loadingMore, loading, page, filters, searchTerm]);
+
+    // Search is triggered on submit or suggestion click.
 
     const handleAddToCart = async (event, book) => {
         event.preventDefault();
@@ -333,9 +361,13 @@ const Store = () => {
         event.stopPropagation();
         const bookId = book?._id || book?.id;
         if (bookId) {
-            navigate(`/reader/dashboard/store/${bookId}`);
+            navigate(`/reader/view/${bookId}`);
         }
     };
+
+    const hasActiveSearch = Boolean(searchTerm.trim());
+    const hasActiveFilters = Boolean(filters.genre || filters.language || filters.minRating);
+    const showRecommended = recommendedBooks.length > 0 && !(hasActiveSearch || hasActiveFilters);
 
     return (
         <div className="pb-12">
@@ -363,7 +395,7 @@ const Store = () => {
                                             className="px-3 py-2 cursor-pointer hover:bg-gray-100"
                                             onClick={() =>
                                                 typeof item === "string"
-                                                    ? setSearchQuery(item)
+                                                    ? applySearch(item)
                                                     : handleSuggestionClick(item)
                                             }
                                         >
@@ -424,8 +456,8 @@ const Store = () => {
                                 >
                                     <option value="">All</option>
                                     {languages.map((language) => (
-                                        <option key={language} value={language}>
-                                            {language}
+                                        <option key={language.value} value={language.value}>
+                                            {language.label}
                                         </option>
                                     ))}
                                 </select>
@@ -480,7 +512,7 @@ const Store = () => {
                 )}
             </div>
 
-            {recommendedBooks.length > 0 && (
+            {showRecommended && (
                 <div className="mt-10 mb-8">
                     <h3 className="font-nunito text-xl mb-4">Recommended For You</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
@@ -570,9 +602,7 @@ const Store = () => {
                                                 <button
                                                     type="button"
                                                     onClick={(e) => handleReadNow(e, book)}
-                                                    disabled
-                                                    title="Reader coming soon"
-                                                    className="flex-1 flex items-center justify-center gap-2 bg-[#5A7C65] text-white px-3 py-2.5 rounded-lg text-[14px] font-semibold hover:opacity-90 disabled:opacity-80"
+                                                    className="flex-1 flex items-center justify-center gap-2 bg-[#5A7C65] text-white px-3 py-2.5 rounded-lg text-[14px] font-semibold hover:opacity-90"
                                                 >
                                                     <FiPlay className="w-4 h-4" />
                                                     Read Now
@@ -726,9 +756,7 @@ const Store = () => {
                                                 <button
                                                     type="button"
                                                     onClick={(e) => handleReadNow(e, book)}
-                                                    disabled
-                                                    title="Reader coming soon"
-                                                    className="flex-1 flex items-center justify-center gap-2 bg-[#5A7C65] text-white px-3 py-2.5 rounded-lg text-[14px] font-semibold hover:opacity-90 disabled:opacity-80"
+                                                    className="flex-1 flex items-center justify-center gap-2 bg-[#5A7C65] text-white px-3 py-2.5 rounded-lg text-[14px] font-semibold hover:opacity-90"
                                                 >
                                                     <FiPlay className="w-4 h-4" />
                                                     Read Now
@@ -763,14 +791,9 @@ const Store = () => {
 
                     <div className="flex justify-center mt-8">
                         {hasMore ? (
-                            <button
-                                type="button"
-                                onClick={handleLoadMore}
-                                disabled={loadingMore}
-                                className="px-6 py-2 rounded-md border bg-white shadow-sm hover:bg-gray-50 disabled:opacity-60 font-nunito"
-                            >
-                                {loadingMore ? "Loading..." : "Load More"}
-                            </button>
+                            <div className="px-6 py-2 rounded-md text-gray-500 font-nunito">
+                                {loadingMore ? "Loading..." : "Scroll to load more"}
+                            </div>
                         ) : (
                             <p className="text-gray-500 font-nunito">No more books to load.</p>
                         )}

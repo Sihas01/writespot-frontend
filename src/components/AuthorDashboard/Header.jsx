@@ -58,7 +58,14 @@ const Header = ({ username, isVisible }) => {
     ${isVisible ? "translate-y-0" : "-translate-y-full"}`}
         >
             <div className="flex items-center justify-between">
-                <h1 className="font-inknut text-2xl text-[#074B03]">WriteSpot</h1>
+                <button
+                    type="button"
+                    onClick={() => navigate("/dashboard")}
+                    className="font-inknut text-2xl text-[#074B03] hover:opacity-90"
+                    aria-label="WriteSpot home"
+                >
+                    WriteSpot
+                </button>
 
                 <div className="flex items-center gap-1 md:gap-4">
                     <button className="p-2 hover:bg-gray-100 rounded-full transition">
