@@ -6,7 +6,8 @@ import { FiShare2, FiShoppingCart, FiPlay, FiThumbsUp, FiFlag } from "react-icon
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
 import ReviewModal from "../components/ReviewModal";
-import { getBookReviews, markHelpful, reportReview } from "../services/reviewService";
+import ReportModal from "../components/ReportModal";
+import { getBookReviews, markHelpful } from "../services/reviewService";
 
 const BookDetail = () => {
   const { bookId: routeBookId } = useParams();
@@ -18,8 +19,7 @@ const BookDetail = () => {
 
   // Report Feature State
   const [showReportModal, setShowReportModal] = useState(false);
-  const [reportReason, setReportReason] = useState("");
-  const [reportLoading, setReportLoading] = useState(false);
+  const [reportingReviewId, setReportingReviewId] = useState(null);
 
   // Review Feature State
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -27,30 +27,9 @@ const BookDetail = () => {
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [sortBy, setSortBy] = useState("newest");
   const [helpfulLoading, setHelpfulLoading] = useState({});
-  const [reportReviewLoading, setReportReviewLoading] = useState({});
 
   const { addToCart, actionLoading } = useCart();
   const navigate = useNavigate();
-
-  const handleReportSubmit = async () => {
-    if (!reportReason.trim()) return;
-    setReportLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/books/${resolvedBookId}/report`,
-        { reason: reportReason },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      alert("Report submitted successfully. Thank you.");
-      setShowReportModal(false);
-      setReportReason("");
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to submit report");
-    } finally {
-      setReportLoading(false);
-    }
-  };
 
   const authorName = useMemo(() => {
     if (book?.author?.firstName || book?.author?.lastName) {
@@ -266,24 +245,6 @@ const BookDetail = () => {
       alert("An error occurred. Please try again.");
     } finally {
       setHelpfulLoading((prev) => ({ ...prev, [reviewId]: false }));
-    }
-  };
-
-  const handleReportReview = async (reviewId) => {
-    if (!confirm("Are you sure you want to report this review?")) return;
-
-    setReportReviewLoading((prev) => ({ ...prev, [reviewId]: true }));
-    try {
-      const result = await reportReview(reviewId);
-      if (result.success) {
-        alert("Review reported successfully. Thank you for your feedback.");
-      } else {
-        alert(result.error || "Failed to report review");
-      }
-    } catch (err) {
-      alert("An error occurred. Please try again.");
-    } finally {
-      setReportReviewLoading((prev) => ({ ...prev, [reviewId]: false }));
     }
   };
 
@@ -587,9 +548,8 @@ const BookDetail = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleReportReview(review._id)}
-                      disabled={reportReviewLoading[review._id]}
-                      className="flex items-center gap-2 text-sm text-red-500 hover:text-red-700 font-nunito disabled:opacity-50"
+                      onClick={() => setReportingReviewId(review._id)}
+                      className="flex items-center gap-2 text-sm text-red-500 hover:text-red-700 font-nunito"
                     >
                       <FiFlag />
                       Report
@@ -602,35 +562,21 @@ const BookDetail = () => {
         </div>
       </div>
 
-      {/* Report Modal */}
-      {showReportModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
-            <h3 className="text-xl font-bold mb-4 text-gray-800">Report this Book</h3>
-            <textarea
-              className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:ring-2 focus:ring-red-500 min-h-[100px]"
-              placeholder="Why are you reporting this book? (e.g., Inappropriate content, Copyright issue)"
-              value={reportReason}
-              onChange={(e) => setReportReason(e.target.value)}
-            />
-            <div className="flex justify-end gap-3 mt-4">
-              <button
-                onClick={() => setShowReportModal(false)}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleReportSubmit}
-                disabled={reportLoading || !reportReason.trim()}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
-              >
-                {reportLoading ? "Submitting..." : "Submit Report"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Book Report Modal */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        targetId={resolvedBookId}
+        targetType="Book"
+      />
+
+      {/* Review Report Modal */}
+      <ReportModal
+        isOpen={!!reportingReviewId}
+        onClose={() => setReportingReviewId(null)}
+        targetId={reportingReviewId}
+        targetType="Review"
+      />
 
       {/* Review Modal */}
       <ReviewModal
