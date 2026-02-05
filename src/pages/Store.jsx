@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FiShoppingBag, FiShoppingCart, FiPlay } from "react-icons/fi";
 import { FaStar, FaStarHalfAlt, FaRegStar, FaHeart, FaRegHeart } from "react-icons/fa";
@@ -32,6 +32,7 @@ const Store = () => {
     const [ownedIds, setOwnedIds] = useState(new Set());
     const { addToCart, actionLoading } = useCart();
     const navigate = useNavigate();
+    const recommendedCarouselRef = useRef(null);
 
     const genres = ["Fiction", "Non-Fiction", "Poetry", "Biography", "Education"];
     const languages = [
@@ -51,7 +52,8 @@ const Store = () => {
                     const res = await axios.get(`${import.meta.env.VITE_API_URL}/books`, {
                         params: {
                             genre: user.preferredGenres.join(","),
-                            limit: 4
+                            limit: 8,
+                            recommend: 1,
                         },
                         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
                     });
@@ -64,6 +66,7 @@ const Store = () => {
         };
         fetchRecommendations();
     }, []);
+
 
     const fetchBooks = async ({ pageToLoad = 1, append = false, query = searchTerm } = {}) => {
         const token = localStorage.getItem("token");
@@ -514,8 +517,14 @@ const Store = () => {
 
             {showRecommended && (
                 <div className="mt-10 mb-8">
-                    <h3 className="font-nunito text-xl mb-4">Recommended For You</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-nunito text-xl">Recommended For You</h3>
+                    </div>
+                    <div
+                        ref={recommendedCarouselRef}
+                        className="flex gap-4 overflow-x-auto pb-3 -mx-1 px-1"
+                        style={{ scrollbarWidth: "none" }}
+                    >
                         {recommendedBooks.map((book) => {
                             const bookId = book._id || book.id;
                             const purchased = Boolean(book?.purchased || book?.isPurchased || ownedIds.has(bookId));
@@ -525,7 +534,7 @@ const Store = () => {
                                 <div
                                     key={bookId}
                                     onClick={() => navigate(bookId ? `/reader/dashboard/store/${bookId}` : "#")}
-                                    className="p-4 rounded-xl flex flex-col shadow-sm bg-white hover:shadow-md transition-shadow cursor-pointer border border-gray-100"
+                                    className="flex-shrink-0 w-64 sm:w-72 md:w-[260px] p-4 rounded-xl flex flex-col shadow-sm bg-white hover:shadow-md transition-shadow cursor-pointer border border-gray-100"
                                 >
                                     <div className="relative">
                                         <img
