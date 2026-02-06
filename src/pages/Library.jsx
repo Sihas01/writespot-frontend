@@ -89,7 +89,8 @@ const Library = () => {
                 return (
                   <div
                     key={bookId || book?.title}
-                    className="flex flex-col bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden"
+                    onClick={() => bookId && navigate(`/reader/dashboard/store/${bookId}`)}
+                    className="flex flex-col bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
                   >
                     <div className="bg-gray-50 flex justify-center items-center p-4">
                       <img
@@ -117,7 +118,10 @@ const Library = () => {
 
                       <button
                         type="button"
-                        onClick={() => navigate(`/reader/view/${bookId}`)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          navigate(`/reader/view/${bookId}`);
+                        }}
                         className="mt-2 w-full flex items-center justify-center gap-2 bg-[#5A7C65] text-white px-4 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity"
                       >
                         Read Now

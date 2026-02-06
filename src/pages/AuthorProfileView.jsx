@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { FaFacebook, FaInstagram, FaXTwitter } from "react-icons/fa6";
+import { FiFlag } from "react-icons/fi";
 import Header from "../components/ReaderPortal/Header";
 import Navigation from "../components/ReaderPortal/Navigation";
 import CartPanel from "../components/ReaderPortal/CartPanel";
+import ReportModal from "../components/ReportModal";
 import { CartProvider } from "../context/CartContext";
 import {
   fetchPublicAuthorProfile,
@@ -30,6 +32,7 @@ const AuthorProfileView = () => {
   const [showHeader, setShowHeader] = useState(true);
   const [isNavSticky, setIsNavSticky] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [showReportModal, setShowReportModal] = useState(false);
   const carouselRef = useRef(null);
 
   useEffect(() => {
@@ -184,6 +187,14 @@ const AuthorProfileView = () => {
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 font-nunito">
                   {profile.user?.name}
                 </h1>
+                <button
+                  type="button"
+                  onClick={() => setShowReportModal(true)}
+                  className="p-2 rounded-full hover:bg-red-50 text-red-500 transition-colors"
+                  title="Report Author"
+                >
+                  <FiFlag className="w-5 h-5" />
+                </button>
               </div>
               <p className="text-gray-700 leading-relaxed font-nunito">
                 {profile.bio || "This author has not added a bio yet."}
@@ -351,6 +362,12 @@ const AuthorProfileView = () => {
           {content()}
         </main>
         <CartPanel />
+        <ReportModal
+          isOpen={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          targetId={profile?.user?.id}
+          targetType="Author"
+        />
       </div>
     </CartProvider>
   );
